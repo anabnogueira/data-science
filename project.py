@@ -8,32 +8,31 @@ import matplotlib.pyplot as plt
 import functions as func
 import seaborn as sns
 import scipy.stats as _stats
+import numpy as np
  
 register_matplotlib_converters()
 data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
 # print(data)
 
-# print(data.shape)
+shape = data.shape
 
-# print(data.dtypes)
+print("Number of Variables/Attributes: " + str(shape[1]))
+print("Number of Records/Instances: " + str(shape[0]))
 
-# print(data.dtypes.value_counts())
-
+#print(data.dtypes)
+print(3 * "\n")
+print(data.dtypes.value_counts())
 new_data = data.iloc[:,1:22]
 
 # print(new_data)
-
-
-
-#print(data)
-
 #print(new_data.shape)
-
 #print(new_data.dtypes)
 
+print(3 * "\n")
 
-
+"""
+# Boxplot
 columns = new_data.select_dtypes(include='number').columns
 rows, cols = func.choose_grid(len(columns))
 plt.figure()
@@ -44,9 +43,9 @@ for n in range(len(columns)):
     axs[i, j].boxplot(new_data[columns[n]].dropna().values)
     i, j = (i + 1, 0) if (n+1) % cols == 0 else (i, j + 1)
 fig.tight_layout()
-#plt.show()
+plt.show()
 
-
+# Histogram
 columns = new_data.select_dtypes(include='number').columns
 rows, cols = func.choose_grid(len(columns))
 plt.figure()
@@ -59,9 +58,9 @@ for n in range(len(columns)):
     axs[i, j].hist(new_data[columns[n]].dropna().values, 'auto')
     i, j = (i + 1, 0) if (n+1) % cols == 0 else (i, j + 1)
 fig.tight_layout()
-#plt.show()
+plt.show()
 
-
+# Histogram (granularity)
 columns = new_data.select_dtypes(include='number').columns
 rows = len(columns)
 cols = 5
@@ -75,10 +74,10 @@ for i in range(len(columns)):
         axs[i, j].set_ylabel("probability")
         axs[i, j].hist(data[columns[i]].dropna().values, bins[j])
 fig.tight_layout()
-#plt.show()
+plt.show()
 
 
-
+# Distribution fits
 import scipy.stats as _stats 
 def compute_known_distributions(x_values, n_bins) -> dict:
     distributions = dict()
@@ -86,8 +85,8 @@ def compute_known_distributions(x_values, n_bins) -> dict:
     mean, sigma = _stats.norm.fit(x_values)
     distributions['Normal(%.1f,%.2f)'%(mean,sigma)] = _stats.norm.pdf(x_values, mean, sigma)
     # LogNorm
-  #  sigma, loc, scale = _stats.lognorm.fit(x_values)
-  #  distributions['LogNor(%.1f,%.2f)'%(np.log(scale),sigma)] = _stats.lognorm.pdf(x_values, sigma, loc, scale)
+    sigma, loc, scale = _stats.lognorm.fit(x_values)
+    distributions['LogNor(%.1f,%.2f)'%(np.log(scale),sigma)] = _stats.lognorm.pdf(x_values, sigma, loc, scale)
     # Exponential
     loc, scale = _stats.expon.fit(x_values)
     distributions['Exp(%.2f)'%(1/scale)] = _stats.expon.pdf(x_values, loc, scale)
@@ -127,3 +126,18 @@ for n in range(len(columns)):
     i, j = (i + 1, 0) if (n+1) % cols == 0 else (i, j + 1)
 fig.tight_layout()
 plt.show()
+
+
+"""
+
+
+group_baseline = data.iloc[:,1:22]
+group_intensity = data.iloc[:,22:25]
+group_formant = data.iloc[:,25:29]
+group_bandwidth = data.iloc[:,29:33]
+group_vocalfold = data.iloc[:,33:55]
+group_mfcc = data.iloc[:,55:139]
+group_wavelet = data.iloc[:,139:-1]
+
+#print(group_wavelet)
+#print(data)
