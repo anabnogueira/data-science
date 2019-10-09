@@ -131,13 +131,13 @@ plt.show()
 """
 
 
-group_baseline = [data.iloc[:,1:22], "group_baseline"]
-group_intensity = [data.iloc[:,22:25],"group_intensity"]
-group_formant = [data.iloc[:,25:29], "group_formant"]
-group_bandwidth = [data.iloc[:,29:33], "group_bandwidth"]
-group_vocalfold = [data.iloc[:,33:55],"group_vocalfold"]
-group_mfcc = [data.iloc[:,55:139], "group_mfcc"]
-group_wavelet = [data.iloc[:,139:-1], "group_wavelet"]
+group_baseline = data.iloc[:,1:22]
+group_intensity = data.iloc[:,22:25]
+group_formant = data.iloc[:,25:29]
+group_bandwidth = data.iloc[:,29:33]
+group_vocalfold = data.iloc[:,33:55]
+group_mfcc = data.iloc[:,55:139]
+group_wavelet = data.iloc[:,139:-1]
 
 #new_data = {group_baseline: "Baseline", group_intensity : "group_intensity" }
 #print(new_data.get(group_baseline))
@@ -163,26 +163,83 @@ def sparcity(data):
 
 
 #### HeatMap ###############################
-"""def heatmap(data,group_id):
+def heatmap(data):
     fig = plt.figure(figsize=[12, 12])
     corr_mtx = data.corr()
     sns.heatmap(corr_mtx, xticklabels=corr_mtx.columns, yticklabels=corr_mtx.columns, annot=True, cmap='Blues')
-    plt.title('Correlation analysis of ' + group_id )
+    plt.title('Correlation analysis of', )
     plt.show()
-"""
+
 
 
 all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, group_vocalfold, group_mfcc, group_wavelet]
 #all_data_named = ["Baseline", "Intensity", "Format", "Bandwith", "VocalFold", "MFCC", "Wavelet"]
 
 
-for group in all_data:
-    sparcity(group[0])
+#for group in range(len(all_data)-2):
+    #sparcity(all_data[group])
     #sparcity(group)
-   # heatmapa(group)
-  #  heatmap(group[0],group[1])
+    #heatmap(all_data[group])
     
+#group_mfcc_sm = data.iloc[:,56:8]
+
+#sparcity(data.iloc[:,5:10])
 
 
+def filter_columns(group, coef):
+    corr_mtx = group.corr()
+    
+    print("Pais of parameters with Pearson Coefficient larger than " + str(coef))
+    print(60*"-")
+    columns = np.full((corr_mtx.shape[0],), True, dtype=bool)
+    for i in range(corr_mtx.shape[0]):
+        for j in range(i+1, corr_mtx.shape[0]):
+            if coef > 0 and (corr_mtx.iloc[i,j] >= coef):
+                print(group.columns[i] + " - " + group.columns[j])
+                if columns[j]:
+                    columns[j] = False
+
+
+
+# group baseline
+#heatmap(group_baseline)
+#filter_columns(group_baseline, 0.80)
+#sparcity(group_baseline)
+
+# group intensity
+#heatmap(group_intensity)
+#filter_columns(group_intensity, 0.80)
+#sparcity(group_intensity)
+
+
+# group formant
+#heatmap(group_formant)
+#filter_columns(group_formant, 0.80)
+#sparcity(group_formant)
+
+# group bandwidth
+#heatmap(group_bandwidth)
+#filter_columns(group_bandwidth, 0.80)
+#sparcity(group_bandwidth)
+
+# group vocalfold
+#heatmap(group_vocalfold)
+#filter_columns(group_vocalfold, 0.80)
+#sparcity(group_vocalfold)
+
+# group mfcc
+#heatmap(group_mfcc)
+#filter_columns(group_mfcc, 0.80)
+#sparcity(group_mfcc)
+
+# group wavelet
+#heatmap(group_wavelet)
+#filter_columns(group_wavelet, 0.80)
+#sparcity(group_wavelet)
+
+#selected_columns = group_mfcc.columns[columns]
+#result = group_mfcc[selected_columns]
+#heatmap(result)            
+            
 
 
