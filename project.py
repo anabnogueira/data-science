@@ -21,9 +21,9 @@ print("Number of Variables/Attributes: " + str(shape[1]))
 print("Number of Records/Instances: " + str(shape[0]))
 
 #print(data.dtypes)
-print(3 * "\n")
-print(data.dtypes.value_counts())
-new_data = data.iloc[:,1:22]
+#print(3 * "\n")
+#print(data.dtypes.value_counts())
+#new_data = data.iloc[:,1:22]
 
 # print(new_data)
 #print(new_data.shape)
@@ -139,5 +139,49 @@ group_vocalfold = data.iloc[:,33:55]
 group_mfcc = data.iloc[:,55:139]
 group_wavelet = data.iloc[:,139:-1]
 
-#print(group_wavelet)
-#print(data)
+#new_data = {group_baseline: "Baseline", group_intensity : "group_intensity" }
+#print(new_data.get(group_baseline))
+#print(data[0])
+
+#### Sparcity ###############################
+
+def sparcity(data):
+    columns = data.select_dtypes(include='number').columns
+    rows, cols = len(columns)-1, len(columns)-1
+    plt.figure()
+    fig, axs = plt.subplots(rows, cols, figsize=(cols*4, rows*4), squeeze=False)
+    for i in range(len(columns)):
+        var1 = columns[i]
+        for j in range(i+1, len(columns)):
+            var2 = columns[j]
+            axs[i, j-1].set_title("%s x %s"%(var1,var2))
+            axs[i, j-1].set_xlabel(var1)
+            axs[i, j-1].set_ylabel(var2)
+            axs[i, j-1].scatter(data[var1], data[var2])
+    fig.tight_layout()
+    plt.show()
+
+
+#### HeatMap ###############################
+def heatmap(data):
+    fig = plt.figure(figsize=[12, 12])
+    corr_mtx = data.corr()
+    sns.heatmap(corr_mtx, xticklabels=corr_mtx.columns, yticklabels=corr_mtx.columns, annot=True, cmap='Blues')
+    plt.title('Correlation analysis of', )
+    plt.show()
+
+
+
+all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, group_vocalfold, group_mfcc, group_wavelet]
+#all_data_named = ["Baseline", "Intensity", "Format", "Bandwith", "VocalFold", "MFCC", "Wavelet"]
+
+
+for group in all_data:
+    sparcity(group)
+    #sparcity(group)
+    heatmapa(group)
+    heatmap(group)
+
+
+
+
