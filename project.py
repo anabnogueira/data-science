@@ -131,13 +131,13 @@ plt.show()
 """
 
 
-group_baseline = data.iloc[:,1:22]
-group_intensity = data.iloc[:,22:25]
-group_formant = data.iloc[:,25:29]
-group_bandwidth = data.iloc[:,29:33]
-group_vocalfold = data.iloc[:,33:55]
-group_mfcc = data.iloc[:,55:139]
-group_wavelet = data.iloc[:,139:-1]
+group_baseline = [data.iloc[:,1:22], "group_baseline"]
+group_intensity = [data.iloc[:,22:25],"group_intensity"]
+group_formant = [data.iloc[:,25:29], "group_formant"]
+group_bandwidth = [data.iloc[:,29:33], "group_bandwidth"]
+group_vocalfold = [data.iloc[:,33:55],"group_vocalfold"]
+group_mfcc = [data.iloc[:,55:139], "group_mfcc"]
+group_wavelet = [data.iloc[:,139:-1], "group_wavelet"]
 
 #new_data = {group_baseline: "Baseline", group_intensity : "group_intensity" }
 #print(new_data.get(group_baseline))
@@ -163,13 +163,13 @@ def sparcity(data):
 
 
 #### HeatMap ###############################
-def heatmap(data):
+"""def heatmap(data,group_id):
     fig = plt.figure(figsize=[12, 12])
     corr_mtx = data.corr()
     sns.heatmap(corr_mtx, xticklabels=corr_mtx.columns, yticklabels=corr_mtx.columns, annot=True, cmap='Blues')
-    plt.title('Correlation analysis of', )
+    plt.title('Correlation analysis of ' + group_id )
     plt.show()
-
+"""
 
 
 all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, group_vocalfold, group_mfcc, group_wavelet]
@@ -177,10 +177,11 @@ all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, gro
 
 
 for group in all_data:
-    sparcity(group)
+    sparcity(group[0])
     #sparcity(group)
-    heatmapa(group)
-    heatmap(group)
+   # heatmapa(group)
+  #  heatmap(group[0],group[1])
+    
 
 
 
