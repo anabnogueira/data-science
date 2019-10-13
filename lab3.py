@@ -73,7 +73,7 @@ new_wavelet = filter_columns(group_wavelet, 0.90)
 frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
 
 unbalace_data = pd.concat(frames, axis = 1) #junto todos os grupos
-print(unbalace_data.shape)
+#print(unbalace_data.shape)
 
 
 
@@ -94,18 +94,16 @@ print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_
 
 
 y: np.ndarray = unbalace_data.pop('class').values
-print(y)
 X: np.ndarray = unbalace_data.values
 labels = pd.unique(y)
 
-trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
-
-##SMOTE
+##vcompara tecnicas de balaceamento
+'''
 RANDOM_STATE = 42
 values = {'Original': [target_count.values[ind_min_class], target_count.values[1-ind_min_class]]}
 
-df_class_min = unbalace_data[unbalace_data['Outcome'] == min_class]
-df_class_max = unbalace_data[unbalace_data['Outcome'] != min_class] 
+df_class_min = unbalace_data[unbalace_data['class'] == min_class]
+df_class_max = unbalace_data[unbalace_data['class'] != min_class] 
 
 df_under = df_class_max.sample(len(df_class_min))
 values['UnderSample'] = [target_count.values[ind_min_class], len(df_under)]
@@ -114,7 +112,7 @@ df_over = df_class_min.sample(len(df_class_max), replace=True)
 values['OverSample'] = [len(df_over), target_count.values[1-ind_min_class]]
 
 smote = SMOTE(ratio='minority', random_state=RANDOM_STATE)
-y = unbalace_data.pop('Outcome').values
+y = unbalace_data.pop('class').values
 X = unbalace_data.values
 _, smote_y = smote.fit_sample(X, y)
 smote_target_count = pd.Series(smote_y).value_counts()
@@ -125,19 +123,17 @@ func.multiple_bar_chart(plt.gca(),
                         [target_count.index[ind_min_class], target_count.index[1-ind_min_class]], 
                         values, 'Target', 'frequency', 'Class balance')
 plt.show()
-
-
-
-
-
-
-
-
-
-#print(trnX.shape)
-#print(tstX.shape)
-
 '''
+
+# SMOTE
+sm = SMOTE(random_state=42)
+X_res, y_res = sm.fit_resample(X, y)
+print(X_res.shape)
+print(y_res.shape)
+
+
+trnX, tstX, trnY, tstY = train_test_split(X_res, y_res, train_size=0.7, stratify=y_res)
+
 clf = GaussianNB()
 clf.fit(trnX, trnY)
 prdY = clf.predict(tstX)
@@ -147,9 +143,25 @@ print("tstY \n", tstY)
 print("cnf_mtx", cnf_mtx)
 print("\n")
 func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
-
 '''
+estimators = {'GaussianNB': GaussianNB(), 
+              'MultinomialNB': MultinomialNB(), 
+              'BernoulyNB': BernoulliNB()}
 
+xvalues = []
+yvalues = []
+for clf in estimators:
+    print(clf)
+    xvalues.append(clf)
+    print(xvalues)
+    estimators[clf].fit(trnX, trnY)
+    print(estimators[clf].fit(trnX, trnY))
+    prdY = estimators[clf].predict(tstX)
+    yvalues.append(metrics.accuracy_score(tstY, prdY))
+    print("\n")
 
+plt.figure()
+func.bar_chart(plt.gca(), xvalues, yvalues, 'Comparison of Naive Bayes Models', '', 'accuracy', percentage=True)
+plt.show()
 
- 
+ '''
