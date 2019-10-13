@@ -167,19 +167,16 @@ def heatmap(data):
     fig = plt.figure(figsize=[12, 12])
     corr_mtx = data.corr()
     sns.heatmap(corr_mtx, xticklabels=corr_mtx.columns, yticklabels=corr_mtx.columns, annot=True, cmap='Blues')
-    plt.title('Correlation analysis of', )
+    plt.title('Correlation analysis')
     plt.show()
 
 
 
 all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, group_vocalfold, group_mfcc, group_wavelet]
 #all_data_named = ["Baseline", "Intensity", "Format", "Bandwith", "VocalFold", "MFCC", "Wavelet"]
+#print(all_data)
 
 
-#for group in range(len(all_data)-2):
-    #sparcity(all_data[group])
-    #sparcity(group)
-    #heatmap(all_data[group])
     
 #group_mfcc_sm = data.iloc[:,56:8]
 
@@ -189,15 +186,71 @@ all_data = [group_baseline, group_intensity, group_formant, group_bandwidth, gro
 def filter_columns(group, coef):
     corr_mtx = group.corr()
     
-    print("Pais of parameters with Pearson Coefficient larger than " + str(coef))
+    #print("Pairs of parameters with Pearson Coefficient larger than " + str(coef))
     print(60*"-")
     columns = np.full((corr_mtx.shape[0],), True, dtype=bool)
     for i in range(corr_mtx.shape[0]):
         for j in range(i+1, corr_mtx.shape[0]):
             if coef > 0 and (corr_mtx.iloc[i,j] >= coef):
-                print(group.columns[i] + " - " + group.columns[j])
+                #print(group.columns[i] + " - " + group.columns[j])
                 if columns[j]:
                     columns[j] = False
+
+
+    selected_columns = group.columns[columns]
+    result = group[selected_columns]
+    return result
+
+new_base = filter_columns(group_baseline, 0.90)
+print("Baseline")
+heatmap(new_base)  
+
+#tao pequeno vale a pena?
+new_int = filter_columns(group_intensity, 0.90)
+#print("Intensity")
+#heatmap(new_int) 
+
+#igual
+new_form = filter_columns(group_formant, 0.90)
+#print("Formant")
+#heatmap(new_form) 
+
+#igual
+new_band = filter_columns(group_bandwidth, 0.90)
+#print("Bandwith")
+#heatmap(new_band) 
+
+new_vocal = filter_columns(group_vocalfold, 0.90)
+print("VocalFolde")
+heatmap(new_vocal) 
+
+new_mfcc = filter_columns(group_mfcc, 0.70)
+print("MFCC")
+heatmap(new_mfcc) 
+
+new_wav = filter_columns(group_wavelet, 0.50)
+print("Wavelet")
+heatmap(new_wav) 
+
+
+
+
+
+
+
+
+
+#for group in range(len(all_data)-2):
+#    print(all_data)
+#    new_data = filter_columns(group)
+#    heatmap(new_data)
+
+
+
+
+#for group in range(len(all_data)-2):
+#    new_data = filter_columns(group, 0.90)
+#    heatmap(new_data)  
 
 
 
@@ -237,9 +290,7 @@ def filter_columns(group, coef):
 #filter_columns(group_wavelet, 0.80)
 #sparcity(group_wavelet)
 
-#selected_columns = group_mfcc.columns[columns]
-#result = group_mfcc[selected_columns]
-#heatmap(result)            
+          
             
 
 
