@@ -17,6 +17,7 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
+from sklearn.preprocessing import Normalizer
 
 
 
@@ -60,7 +61,7 @@ def filter_columns(group, coef):
 
 
 
-#Feature Selection
+'''Feature Selection'''
 new_baseline = filter_columns(group_baseline, 0.90)
 new_intensity = filter_columns(group_intensity, 0.95)
 new_form = filter_columns(group_formant, 0.90)
@@ -69,81 +70,100 @@ new_vocalfold = filter_columns(group_vocalfold, 0.90)
 new_mfcc = filter_columns(group_mfcc, 0.90)
 new_wavelet = filter_columns(group_wavelet, 0.90)
 
- 
+
+
+'''Normalization'''
+def normalization(X):
+    transf = Normalizer().fit(X)
+    new_X = transf.transform(X)
+
+    return new_X
+
+
+def show_classBalance(data):
+    target_count = data['class'].value_counts()
+    plt.figure()
+    plt.title('Class balance')
+    plt.bar(target_count.index, target_count.values)
+    plt.show()
+    print("\n")
+
+    min_class = target_count.idxmin()
+    ind_min_class = target_count.index.get_loc(min_class)
+
+    print('Minority class:', target_count[ind_min_class])
+    print('Majority class:', target_count[1-ind_min_class])
+    print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_class], 2), ': 1')
+    
+
+
+'''Balanceamento para haver o memso nr records para classe 1 e 0'''
+def show_smote_over_under_sample(un_data): #compara tecnicas de balaceamento
+    target_count = unbalace_data['class'].value_counts()
+    min_class = target_count.idxmin()
+    ind_min_class = target_count.index.get_loc(min_class)
+    
+    RANDOM_STATE = 42
+    values = {'Original': [target_count.values[ind_min_class], target_count.values[1-ind_min_class]]}
+    
+    df_class_min = un_data[un_data['class'] == min_class]
+    df_class_max = un_data[un_data['class'] != min_class]
+    
+    df_under = df_class_max.sample(len(df_class_min))
+    values['UnderSample'] = [target_count.values[ind_min_class], len(df_under)]
+    
+    df_over = df_class_min.sample(len(df_class_max), replace=True)
+    values['OverSample'] = [len(df_over), target_count.values[1-ind_min_class]]
+    
+    smote = SMOTE(ratio='minority', random_state=RANDOM_STATE)
+    y = un_data.pop('class').values
+    X = un_data.values
+    _, smote_y = smote.fit_sample(X, y)
+    smote_target_count = pd.Series(smote_y).value_counts()
+    values['SMOTE'] = [smote_target_count.values[ind_min_class], smote_target_count.values[1-ind_min_class]]
+    
+    plt.figure()
+    func.multiple_bar_chart(plt.gca(), 
+                            [target_count.index[ind_min_class], target_count.index[1-ind_min_class]], 
+                            values, 'Target', 'frequency', 'Class balance')
+    plt.show()
+
+
+
 frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
+selected_data = pd.concat(frames, axis = 1) #junto todos os grupos
 
-unbalace_data = pd.concat(frames, axis = 1) #junto todos os grupos
-#print(unbalace_data.shape)
-
-
-
-target_count = unbalace_data['class'].value_counts()
-plt.figure()
-plt.title('Class balance')
-plt.bar(target_count.index, target_count.values)
-plt.show()
-print("\n")
-
-min_class = target_count.idxmin()
-ind_min_class = target_count.index.get_loc(min_class)
-
-print('Minority class:', target_count[ind_min_class])
-print('Majority class:', target_count[1-ind_min_class])
-print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_class], 2), ': 1')
-
-
-
-y: np.ndarray = unbalace_data.pop('class').values
-X: np.ndarray = unbalace_data.values
+y: np.ndarray = selected_data.pop('class').values #class
+X: np.ndarray = selected_data.values
 labels = pd.unique(y)
 
-##vcompara tecnicas de balaceamento
-'''
-RANDOM_STATE = 42
-values = {'Original': [target_count.values[ind_min_class], target_count.values[1-ind_min_class]]}
+trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
-df_class_min = unbalace_data[unbalace_data['class'] == min_class]
-df_class_max = unbalace_data[unbalace_data['class'] != min_class] 
+trnX_normalized = normalization(trnX)
+tstX_normalized = normalization(tstX)
 
-df_under = df_class_max.sample(len(df_class_min))
-values['UnderSample'] = [target_count.values[ind_min_class], len(df_under)]
+for x in trnX_normalized:
+    print(x)
+    if x < 0:
+        print(x)
+        print("negative")
 
-df_over = df_class_min.sample(len(df_class_max), replace=True)
-values['OverSample'] = [len(df_over), target_count.values[1-ind_min_class]]
 
-smote = SMOTE(ratio='minority', random_state=RANDOM_STATE)
-y = unbalace_data.pop('class').values
-X = unbalace_data.values
-_, smote_y = smote.fit_sample(X, y)
-smote_target_count = pd.Series(smote_y).value_counts()
-values['SMOTE'] = [smote_target_count.values[ind_min_class], smote_target_count.values[1-ind_min_class]]
-
-plt.figure()
-func.multiple_bar_chart(plt.gca(), 
-                        [target_count.index[ind_min_class], target_count.index[1-ind_min_class]], 
-                        values, 'Target', 'frequency', 'Class balance')
-plt.show()
-'''
-
-# SMOTE
+"""
+'''SMOTE'''
 sm = SMOTE(random_state=42)
-X_res, y_res = sm.fit_resample(X, y)
-print(X_res.shape)
-print(y_res.shape)
+trnX_smoted, trnY_smoted = sm.fit_resample(trnX_normalized, trnY)
 
 
-trnX, tstX, trnY, tstY = train_test_split(X_res, y_res, train_size=0.7, stratify=y_res)
 
 clf = GaussianNB()
-clf.fit(trnX, trnY)
-prdY = clf.predict(tstX)
+clf.fit(trnX_smoted, trnY_smoted)
+prdY = clf.predict(tstX_normalized)
 cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
-print("prdY \n", prdY)
-print("tstY \n", tstY)
-print("cnf_mtx", cnf_mtx)
-print("\n")
+print( cnf_mtx)
 func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
-'''
+
+
 estimators = {'GaussianNB': GaussianNB(), 
               'MultinomialNB': MultinomialNB(), 
               'BernoulyNB': BernoulliNB()}
@@ -152,16 +172,18 @@ xvalues = []
 yvalues = []
 for clf in estimators:
     print(clf)
+    print("xvalues before", xvalues)
     xvalues.append(clf)
-    print(xvalues)
-    estimators[clf].fit(trnX, trnY)
-    print(estimators[clf].fit(trnX, trnY))
-    prdY = estimators[clf].predict(tstX)
+    print("xvalues after", xvalues)
+    estimators[clf].fit(trnX_smoted, trnY_smoted)
+    print(estimators[clf].fit(trnX_smoted, trnY_smoted))
+    prdY = estimators[clf].predict(tstX_normalized)
+    print("prdY", prdY)
     yvalues.append(metrics.accuracy_score(tstY, prdY))
+    print("yvalues accuracy score", yvalues)
     print("\n")
 
 plt.figure()
 func.bar_chart(plt.gca(), xvalues, yvalues, 'Comparison of Naive Bayes Models', '', 'accuracy', percentage=True)
 plt.show()
-
- '''
+"""
