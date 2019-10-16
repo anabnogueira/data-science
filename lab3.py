@@ -22,7 +22,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
-
+from imblearn.under_sampling import RandomUnderSampler
 
 
 
@@ -141,13 +141,23 @@ def smote(trnX,trY):
     trnX_smoted, trnY_smoted = sm.fit_resample(trnX, trnY)
     return trnX_smoted, trnY_smoted
 
+def undersample(trnX, trnY):
+    rus = RandomUnderSampler(random_state=0)
+    X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
+    return X_resampled, y_resampled
+    
+def oversample(trnX, trnY):
+    rus = RandomOverSampler(random_state=0)
+    X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
+    return X_resampled, y_resampled
+
 def gaussianNB(trnX, tstX, trnY, tstY, labels):
     clf = GaussianNB()
     clf.fit(trnX, trnY)
     prdY = clf.predict(tstX)
     cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
 
-    #func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
+    func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
 
     return cnf_mtx
 
@@ -227,14 +237,29 @@ scores = cross_val_score(clfB, new_X, y, cv=5)
 print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 """
 
+x1, y1 = oversample(trnX, trnY)
+x2, y2 = undersample(trnX, trnY)
+
+
+print("Train set, before")
+print(trnX.shape)
+print("Train set, oversample")
+print(x1.shape)
+print("Train set, undersample")
+print(x2.shape)
+
+
+
+
+
 
 
 trnX_normalized = normalization(trnX)
 tstX_normalized = normalization(tstX)
-'''
+
 gaussianNB(trnX, tstX, trnY, tstY, labels)
 gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels)
-
+'''
 compareNB(trnX,trnY,tstY)
 compareNB(trnX_normalized,trnY,tstY)
 
