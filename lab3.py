@@ -18,6 +18,11 @@ from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn.preprocessing import Normalizer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import svm
+
 
 
 
@@ -61,19 +66,20 @@ def filter_columns(group, coef):
 
 
 
-'''Feature Selection'''
-new_baseline = filter_columns(group_baseline, 0.90)
-new_intensity = filter_columns(group_intensity, 0.95)
-new_form = filter_columns(group_formant, 0.90)
-new_band = filter_columns(group_bandwidth, 0.90)
-new_vocalfold = filter_columns(group_vocalfold, 0.90)
-new_mfcc = filter_columns(group_mfcc, 0.90)
-new_wavelet = filter_columns(group_wavelet, 0.90)
-
-
-
 '''Normalization'''
+def minMax_data(data):
+
+    scaler = MinMaxScaler()
+    scaler.fit(data)
+    new_data = scaler.transform(data)
+
+    return new_data
+
 def normalization(X):
+
+    #transf = Normalizer().fit(X)
+    #df_nr = pd.DataFrame(transf.transform(X, copy=True), columns=X.columns)
+
     transf = Normalizer().fit(X)
     new_X = transf.transform(X)
 
@@ -129,61 +135,117 @@ def show_smote_over_under_sample(un_data): #compara tecnicas de balaceamento
     plt.show()
 
 
+'''SMOTE'''
+def smote(trnX,trY):
+    sm = SMOTE(random_state=42)
+    trnX_smoted, trnY_smoted = sm.fit_resample(trnX, trnY)
+    return trnX_smoted, trnY_smoted
+
+def gaussianNB(trnX, tstX, trnY, tstY, labels):
+    clf = GaussianNB()
+    clf.fit(trnX, trnY)
+    prdY = clf.predict(tstX)
+    cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
+
+    #func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
+
+    return cnf_mtx
+
+def compareNB(trnX,tstX, trnY,tstY):
+    estimators = {'GaussianNB': GaussianNB(),
+                  'MultinomialNB': MultinomialNB(),
+                  'BernoulyNB': BernoulliNB()}
+
+    xvalues = []
+    yvalues = []
+    for clf in estimators:
+        xvalues.append(clf)
+        estimators[clf].fit(trnX, trnY)
+        prdY = estimators[clf].predict(tstX)
+        yvalues.append(metrics.accuracy_score(tstY, prdY))
+
+    plt.figure()
+    func.bar_chart(plt.gca(), xvalues, yvalues, 'Comparison of Naive Bayes Models', '', 'accuracy', percentage=True)
+    plt.show()
+
+def knn(trnX,trnY,tstX,tstY):
+    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+    dist = ['manhattan', 'euclidean', 'chebyshev']
+    values = {}
+    for d in dist:
+        yvalues = []
+        for n in nvalues:
+            knn = KNeighborsClassifier(n_neighbors=n, metric=d)
+            knn.fit(trnX, trnY)
+            prdY = knn.predict(tstX)
+            yvalues.append(metrics.accuracy_score(tstY, prdY))
+        values[d] = yvalues
+
+    plt.figure()
+    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variants', 'n', 'accuracy', percentage=True)
+    plt.show()
+
+
+
+""" MAIN """
+
+'''Feature Selection'''
+new_baseline = filter_columns(group_baseline, 0.90)
+new_intensity = filter_columns(group_intensity, 0.95)
+new_form = filter_columns(group_formant, 0.90)
+new_band = filter_columns(group_bandwidth, 0.90)
+new_vocalfold = filter_columns(group_vocalfold, 0.90)
+new_mfcc = filter_columns(group_mfcc, 0.90)
+new_wavelet = filter_columns(group_wavelet, 0.90)
+
+
 
 frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
 selected_data = pd.concat(frames, axis = 1) #junto todos os grupos
+
 
 y: np.ndarray = selected_data.pop('class').values #class
 X: np.ndarray = selected_data.values
 labels = pd.unique(y)
 
-trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
+new_X = minMax_data(X)
+
+
+trnX, tstX, trnY, tstY = train_test_split(new_X, y, train_size=0.7, stratify=y)
+""""
+print("Gaussian")
+clfG = GaussianNB()
+clfM = MultinomialNB()
+clfB = BernoulliNB()
+scores = cross_val_score(clfG, new_X, y, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+scores = cross_val_score(clfM, new_X, y, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+scores = cross_val_score(clfB, new_X, y, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+"""
+
+
 
 trnX_normalized = normalization(trnX)
 tstX_normalized = normalization(tstX)
+'''
+gaussianNB(trnX, tstX, trnY, tstY, labels)
+gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels)
 
-for x in trnX_normalized:
-    print(x)
-    if x < 0:
-        print(x)
-        print("negative")
+compareNB(trnX,trnY,tstY)
+compareNB(trnX_normalized,trnY,tstY)
+
+'''
+knn(trnX_normalized,trnY,tstX,tstY)
 
 
 """
-'''SMOTE'''
-sm = SMOTE(random_state=42)
-trnX_smoted, trnY_smoted = sm.fit_resample(trnX_normalized, trnY)
+TO DO:
+-OverSample
+-undersample
+-cross variar cv 
 
-
-
-clf = GaussianNB()
-clf.fit(trnX_smoted, trnY_smoted)
-prdY = clf.predict(tstX_normalized)
-cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
-print( cnf_mtx)
-func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
-
-
-estimators = {'GaussianNB': GaussianNB(), 
-              'MultinomialNB': MultinomialNB(), 
-              'BernoulyNB': BernoulliNB()}
-
-xvalues = []
-yvalues = []
-for clf in estimators:
-    print(clf)
-    print("xvalues before", xvalues)
-    xvalues.append(clf)
-    print("xvalues after", xvalues)
-    estimators[clf].fit(trnX_smoted, trnY_smoted)
-    print(estimators[clf].fit(trnX_smoted, trnY_smoted))
-    prdY = estimators[clf].predict(tstX_normalized)
-    print("prdY", prdY)
-    yvalues.append(metrics.accuracy_score(tstY, prdY))
-    print("yvalues accuracy score", yvalues)
-    print("\n")
-
-plt.figure()
-func.bar_chart(plt.gca(), xvalues, yvalues, 'Comparison of Naive Bayes Models', '', 'accuracy', percentage=True)
-plt.show()
 """
