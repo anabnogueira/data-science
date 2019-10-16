@@ -59,9 +59,8 @@ def multiple_bar_chart(ax: plt.Axes, xvalues: list, yvalues: dict, title: str, x
         k += 1
     ax.legend(loc='lower center', ncol=len(yvalues), bbox_to_anchor=(0.5, -0.2), fancybox = True, shadow = True)    
 
-def plot_confusion_matrix(cm, y_true, y_pred, classes,
+def plot_confusion_matrix(cm, y_true, y_pred, classes, title, 
                           normalize=False,
-                          title=None,
                           cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.

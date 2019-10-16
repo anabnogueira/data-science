@@ -151,17 +151,17 @@ def oversample(trnX, trnY):
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
     return X_resampled, y_resampled
 
-def gaussianNB(trnX, tstX, trnY, tstY, labels):
+def gaussianNB(trnX, tstX, trnY, tstY, labels, name):
     clf = GaussianNB()
     clf.fit(trnX, trnY)
     prdY = clf.predict(tstX)
     cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
 
-    func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels)
+    func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels, name)
 
     return cnf_mtx
 
-def compareNB(trnX,tstX, trnY,tstY):
+def compareNB(trnX, tstX, trnY, tstY, title):
     estimators = {'GaussianNB': GaussianNB(),
                   'MultinomialNB': MultinomialNB(),
                   'BernoulyNB': BernoulliNB()}
@@ -175,11 +175,11 @@ def compareNB(trnX,tstX, trnY,tstY):
         yvalues.append(metrics.accuracy_score(tstY, prdY))
 
     plt.figure()
-    func.bar_chart(plt.gca(), xvalues, yvalues, 'Comparison of Naive Bayes Models', '', 'accuracy', percentage=True)
+    func.bar_chart(plt.gca(), xvalues, yvalues, title, '', 'accuracy', percentage=True)
     plt.show()
 
 def knn(trnX,trnY,tstX,tstY):
-    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+    nvalues = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
     dist = ['manhattan', 'euclidean', 'chebyshev']
     values = {}
     for d in dist:
@@ -192,8 +192,23 @@ def knn(trnX,trnY,tstX,tstY):
         values[d] = yvalues
 
     plt.figure()
-    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variants', 'n', 'accuracy', percentage=True)
+    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variations by number of neighbours', 'n', 'accuracy', percentage=True)
     plt.show()
+
+
+def knn_cross_validation(X, y):
+    nvalues = [1, 2, 10, 15, 20]
+    dist = ['manhattan', 'euclidean', 'chebyshev']
+    values = {}
+    for d in dist:
+        yvalues = []
+        for n in nvalues:
+            knn = KNeighborsClassifier(n_neighbors=n, metric=d)
+            print(d + " distance - " + str(n) + " neighbours")
+            scores = cross_val_score(knn, X, y, cv=10)
+            print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        values[d] = yvalues
+        print("\n")
 
 
 
@@ -218,25 +233,14 @@ y: np.ndarray = selected_data.pop('class').values #class
 X: np.ndarray = selected_data.values
 labels = pd.unique(y)
 
-new_X = minMax_data(X)
+X = minMax_data(X)
 
 
-trnX, tstX, trnY, tstY = train_test_split(new_X, y, train_size=0.7, stratify=y)
-""""
-print("Gaussian")
-clfG = GaussianNB()
-clfM = MultinomialNB()
-clfB = BernoulliNB()
-scores = cross_val_score(clfG, new_X, y, cv=5)
-print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
-scores = cross_val_score(clfM, new_X, y, cv=5)
-print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-scores = cross_val_score(clfB, new_X, y, cv=5)
-print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
 """
-
 x1, y1 = oversample(trnX, trnY)
 x2, y2 = undersample(trnX, trnY)
 
@@ -247,30 +251,80 @@ print("Train set, oversample")
 print(x1.shape)
 print("Train set, undersample")
 print(x2.shape)
+"""
 
-
-
-
-
-
+X_normalized = normalization(X)
 
 trnX_normalized = normalization(trnX)
 tstX_normalized = normalization(tstX)
 
-gaussianNB(trnX, tstX, trnY, tstY, labels)
-gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels)
-'''
-compareNB(trnX,trnY,tstY)
-compareNB(trnX_normalized,trnY,tstY)
 
-'''
+"""
+# WITHOUT NORMALISATION
+
+# NB with oversampling without normalisation
+trnX, trnY = oversample(trnX, trnY)
+gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with Oversampling")
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Oversampling")
+
+# NB with undersampling without normalisation
+trnX, trnY = undersample(trnX, trnY)
+gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with Undersampling")
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Undersampling")
+
+# NB with undersampling without normalisation
+trnX, trnY = smote(trnX, trnY)
+gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with SMOTE")
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers with SMOTE")
+"""
+
+
+"""
+# WITH NORMALISATION
+
+# NB with oversampling with normalisation
+trnX_normalized, trnY = oversample(trnX_normalized, trnY)
+gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels, "Gaussian NB with Oversampling")
+compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with Oversampling")
+
+# NB with undersampling with normalisation
+trnX_normalized, trnY = undersample(trnX_normalized, trnY)
+gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels, "Gaussian NB with Undersampling")
+compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with Undersampling")
+
+# NB with undersampling with normalisation
+trnX_normalized, trnY = smote(trnX_normalized, trnY)
+gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels, "Gaussian NB with SMOTE")
+compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with SMOTE")
+"""
+
+"""
+# CROSS VALIDATION NB
+
+clfG = GaussianNB()
+clfM = MultinomialNB()
+clfB = BernoulliNB()
+
+print("Naive Bayes")
+print("\tGaussian")
+scores = cross_val_score(clfG, X_normalized, y, cv=10)
+print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+print("\tMultinomial")
+scores = cross_val_score(clfM, X_normalized, y, cv=10)
+print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+print("\tBernoulli")
+scores = cross_val_score(clfB, X_normalized, y, cv=10)
+print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+"""
+
+
+
 knn(trnX_normalized,trnY,tstX,tstY)
 
 
-"""
-TO DO:
--OverSample
--undersample
--cross variar cv 
+# CROSS VALIDATION KNN
 
-"""
+knn_cross_validation(X_normalized, y)
+
