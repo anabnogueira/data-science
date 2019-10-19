@@ -23,7 +23,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from imblearn.under_sampling import RandomUnderSampler
-
+from collections import Counter
 
 
 register_matplotlib_converters()
@@ -59,27 +59,20 @@ def filter_columns(group, coef):
                 if columns[j]:
                     columns[j] = False
 
-
     selected_columns = group.columns[columns]
     result = group[selected_columns]
     return result
 
-
-
 '''Normalization'''
 def minMax_data(data):
-
     scaler = MinMaxScaler()
     scaler.fit(data)
     new_data = scaler.transform(data)
 
     return new_data
 
+
 def normalization(X):
-
-    #transf = Normalizer().fit(X)
-    #df_nr = pd.DataFrame(transf.transform(X, copy=True), columns=X.columns)
-
     transf = Normalizer().fit(X)
     new_X = transf.transform(X)
 
@@ -136,20 +129,29 @@ def show_smote_over_under_sample(un_data): #compara tecnicas de balaceamento
 
 
 '''SMOTE'''
-def smote(trnX,trY):
-    sm = SMOTE(random_state=42)
+def smote(trnX,trnY):
+    print('Dataset shape %s' % Counter(trnY))
+    sm = SMOTE()
     trnX_smoted, trnY_smoted = sm.fit_resample(trnX, trnY)
+    print('Resampled dataset shape %s' % Counter(trnY_smoted))
     return trnX_smoted, trnY_smoted
 
+
 def undersample(trnX, trnY):
+    print('Dataset shape %s' % Counter(trnY))
     rus = RandomUnderSampler(random_state=0)
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
+    print('Resampled dataset shape %s' % Counter(y_resampled))
     return X_resampled, y_resampled
     
+
 def oversample(trnX, trnY):
+    print('Dataset shape %s' % Counter(trnY))
     rus = RandomOverSampler(random_state=0)
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
+    print('Resampled dataset shape %s' % Counter(y_resampled))
     return X_resampled, y_resampled
+
 
 def gaussianNB(trnX, tstX, trnY, tstY, labels, name):
     clf = GaussianNB()
@@ -160,6 +162,7 @@ def gaussianNB(trnX, tstX, trnY, tstY, labels, name):
     func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels, name)
 
     return cnf_mtx
+
 
 def compareNB(trnX, tstX, trnY, tstY, title):
     estimators = {'GaussianNB': GaussianNB(),
@@ -178,8 +181,9 @@ def compareNB(trnX, tstX, trnY, tstY, title):
     func.bar_chart(plt.gca(), xvalues, yvalues, title, '', 'accuracy', percentage=True)
     plt.show()
 
+
 def knn(trnX,trnY,tstX,tstY):
-    nvalues = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100]
     dist = ['manhattan', 'euclidean', 'chebyshev']
     values = {}
     for d in dist:
@@ -188,6 +192,7 @@ def knn(trnX,trnY,tstX,tstY):
             knn = KNeighborsClassifier(n_neighbors=n, metric=d)
             knn.fit(trnX, trnY)
             prdY = knn.predict(tstX)
+            #print(metrics.accuracy_score(tstY, prdY))
             yvalues.append(metrics.accuracy_score(tstY, prdY))
         values[d] = yvalues
 
@@ -197,7 +202,7 @@ def knn(trnX,trnY,tstX,tstY):
 
 
 def knn_cross_validation(X, y):
-    nvalues = [1, 2, 10, 15, 20]
+    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100]
     dist = ['manhattan', 'euclidean', 'chebyshev']
     values = {}
     for d in dist:
@@ -207,9 +212,12 @@ def knn_cross_validation(X, y):
             print(d + " distance - " + str(n) + " neighbours")
             scores = cross_val_score(knn, X, y, cv=10)
             print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+            yvalues.append(scores.mean())
         values[d] = yvalues
         print("\n")
-
+    plt.figure()
+    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
+    plt.show()
 
 
 """ MAIN """
@@ -224,35 +232,32 @@ new_mfcc = filter_columns(group_mfcc, 0.90)
 new_wavelet = filter_columns(group_wavelet, 0.90)
 
 
+"""
+# Group sizes after feature selection
+print(new_baseline.shape)
+print(new_intensity.shape)
+print(new_form.shape)
+print(new_band.shape)
+print(new_vocalfold.shape)
+print(new_mfcc.shape)
+print(new_wavelet.shape)
+"""
 
+# Join all groups back together
 frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
-selected_data = pd.concat(frames, axis = 1) #junto todos os grupos
-
+selected_data = pd.concat(frames, axis = 1)
 
 y: np.ndarray = selected_data.pop('class').values #class
 X: np.ndarray = selected_data.values
 labels = pd.unique(y)
 
+# Dta scaling
 X = minMax_data(X)
 
-
+# Data split
 trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
-
-
-"""
-x1, y1 = oversample(trnX, trnY)
-x2, y2 = undersample(trnX, trnY)
-
-
-print("Train set, before")
-print(trnX.shape)
-print("Train set, oversample")
-print(x1.shape)
-print("Train set, undersample")
-print(x2.shape)
-"""
-
+# Normalization
 X_normalized = normalization(X)
 
 trnX_normalized = normalization(trnX)
@@ -276,8 +281,8 @@ compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Undersampling")
 trnX, trnY = smote(trnX, trnY)
 gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with SMOTE")
 compareNB(trnX, tstX, trnY, tstY, "NB classifiers with SMOTE")
-"""
 
+"""
 
 """
 # WITH NORMALISATION
@@ -292,7 +297,7 @@ trnX_normalized, trnY = undersample(trnX_normalized, trnY)
 gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels, "Gaussian NB with Undersampling")
 compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with Undersampling")
 
-# NB with undersampling with normalisation
+# NB with smote with normalisation
 trnX_normalized, trnY = smote(trnX_normalized, trnY)
 gaussianNB(trnX_normalized, tstX_normalized, trnY, tstY, labels, "Gaussian NB with SMOTE")
 compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with SMOTE")
@@ -317,14 +322,17 @@ print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 print("\tBernoulli")
 scores = cross_val_score(clfB, X_normalized, y, cv=10)
 print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
 """
 
 
+trnX_normalized, trnY = smote(trnX_normalized, trnY)
+#trnX_normalized, trnY = oversample(trnX_normalized, trnY)
+#trnX_normalized, trnY = undersample(trnX_normalized, trnY)
 
-knn(trnX_normalized,trnY,tstX,tstY)
+knn(trnX_normalized,trnY,tstX_normalized,tstY)
 
 
 # CROSS VALIDATION KNN
-
 knn_cross_validation(X_normalized, y)
 
