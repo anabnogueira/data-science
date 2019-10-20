@@ -35,13 +35,6 @@ from sklearn.ensemble import RandomForestClassifier
 register_matplotlib_converters()
 data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
-group_baseline = data.iloc[:,1:22]
-group_intensity = data.iloc[:,22:25]
-group_formant = data.iloc[:,25:29]
-group_bandwidth = data.iloc[:,29:33]
-group_vocalfold = data.iloc[:,33:55]
-group_mfcc = data.iloc[:,55:139]
-group_wavelet = data.iloc[:,139:-1]
 
 
 def heatmap(data):
@@ -68,6 +61,34 @@ def filter_columns(group, coef):
     selected_columns = group.columns[columns]
     result = group[selected_columns]
     return result
+
+
+def feature_selection(data, thresh):
+    group_baseline = data.iloc[:,1:22]
+    group_intensity = data.iloc[:,22:25]
+    group_formant = data.iloc[:,25:29]
+    group_bandwidth = data.iloc[:,29:33]
+    group_vocalfold = data.iloc[:,33:55]
+    group_mfcc = data.iloc[:,55:139]
+    group_wavelet = data.iloc[:,139:-1]
+
+    new_baseline = filter_columns(group_baseline, thresh)
+    new_intensity = filter_columns(group_intensity, thresh)
+    new_form = filter_columns(group_formant, thresh)
+    new_band = filter_columns(group_bandwidth, thresh)
+    new_vocalfold = filter_columns(group_vocalfold, thresh)
+    new_mfcc = filter_columns(group_mfcc, thresh)
+    new_wavelet = filter_columns(group_wavelet, thresh)
+
+    frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
+    selected_data = pd.concat(frames, axis = 1)
+
+    return selected_data
+
+
+
+
+
 
 '''Normalization'''
 def minMax_data(data):
@@ -226,6 +247,35 @@ def knn_cross_validation(X, y):
     plt.show()
 
 
+def knn_feature_selection(data):
+    #nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100]
+    nvalues = [1, 3, 5, 15, 25, 50]
+    dist = 'manhattan'
+    coefs = [0.2, 0.4, 0.5, 0.7, 0.8, 0.9]
+    original = data
+
+    values = {}
+    for n in nvalues:
+        yvalues = []
+        for c in coefs:
+            data = original
+            data = feature_selection(data, c)
+
+            y: np.ndarray = data.pop('class').values
+            X: np.ndarray = data.values
+
+            knn = KNeighborsClassifier(n_neighbors=n, metric=dist)
+            scores = cross_val_score(knn, X, y, cv=10)
+
+            yvalues.append(scores.mean())
+        values[n] = yvalues
+        
+    plt.figure()
+    func.multiple_line_chart(plt.gca(), coefs, values, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
+    plt.show()
+
+
+
 def decision_trees(trnX, trnY, tstX, tstY):
     min_samples_leaf = [.05, .025, .01, .0075, .005, .0025, .001]
     max_depths = [5, 10, 25, 50]
@@ -290,7 +340,19 @@ def random_forests(trnX, trnY, tstX, tstY):
 
 
 
+
 """ MAIN """
+
+
+"""
+group_baseline = data.iloc[:,1:22]
+group_intensity = data.iloc[:,22:25]
+group_formant = data.iloc[:,25:29]
+group_bandwidth = data.iloc[:,29:33]
+group_vocalfold = data.iloc[:,33:55]
+group_mfcc = data.iloc[:,55:139]
+group_wavelet = data.iloc[:,139:-1]
+
 
 '''Feature Selection'''
 new_baseline = filter_columns(group_baseline, 0.90)
@@ -300,7 +362,7 @@ new_band = filter_columns(group_bandwidth, 0.90)
 new_vocalfold = filter_columns(group_vocalfold, 0.90)
 new_mfcc = filter_columns(group_mfcc, 0.90)
 new_wavelet = filter_columns(group_wavelet, 0.90)
-
+"""
 
 """
 # Group sizes after feature selection
@@ -314,9 +376,15 @@ print(new_wavelet.shape)
 """
 
 # Join all groups back together
-frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
-selected_data = pd.concat(frames, axis = 1)
+#frames = [new_baseline,new_intensity,new_form,new_band,new_vocalfold,new_mfcc,new_wavelet, data['class']]
+#selected_data = pd.concat(frames, axis = 1)
 
+knn_feature_selection(data)
+
+
+#selected_data = feature_selection(data, 0.9)
+
+"""
 y: np.ndarray = selected_data.pop('class').values #class
 X: np.ndarray = selected_data.values
 labels = pd.unique(y)
@@ -332,7 +400,7 @@ X_normalized = normalization(X)
 
 trnX_normalized = normalization(trnX)
 tstX_normalized = normalization(tstX)
-
+"""
 
 """
 # WITHOUT NORMALISATION
@@ -396,7 +464,7 @@ print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 """
 
 
-trnX_normalized, trnY = smote(trnX_normalized, trnY)
+#trnX_normalized, trnY = smote(trnX_normalized, trnY)
 #trnX_normalized, trnY = oversample(trnX_normalized, trnY)
 #trnX_normalized, trnY = undersample(trnX_normalized, trnY)
 
@@ -411,7 +479,7 @@ trnX_normalized, trnY = smote(trnX_normalized, trnY)
 #decision_tree_draw(trnX_normalized, trnY)
 
 # Random Forests
-random_forests(trnX_normalized, trnY, tstX_normalized, tstY)
+#random_forests(trnX_normalized, trnY, tstX_normalized, tstY)
 
 
 
