@@ -299,6 +299,30 @@ def decision_trees(trnX, trnY, tstX, tstY):
 
     plt.show()
 
+
+def decision_trees_cross_validation(X, y):
+    min_samples_leaf = [.05, .025, .01, .0075, .005, .0025, .001]
+    max_depths = [5, 10, 25, 50]
+    criteria = ['entropy', 'gini']
+
+    plt.figure()
+    fig, axs = plt.subplots(1, 2, figsize=(16, 4), squeeze=False)
+    for k in range(len(criteria)):
+        f = criteria[k]
+        values = {}
+        for d in max_depths:
+            yvalues = []
+            for n in min_samples_leaf:
+                tree = DecisionTreeClassifier(min_samples_leaf=n, max_depth=d, criterion=f)
+                scores = cross_val_score(tree, X, y, cv=10)
+                yvalues.append(scores.mean())
+            values[d] = yvalues
+        func.multiple_line_chart(axs[0, k], min_samples_leaf, values, 'Decision Trees with %s criteria' % f,
+                                 'nr estimators',
+                                 'accuracy', percentage=True)
+
+    plt.show()
+
 def decision_tree_draw(trnX, trnY):
     tree = DecisionTreeClassifier(max_depth=3)
     tree.fit(trnX, trnY)

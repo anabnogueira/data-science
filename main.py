@@ -29,7 +29,7 @@ register_matplotlib_converters()
 data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
 
-selected_data = feature_selection(data, 0.9)
+selected_data = feature_selection(data, 0.8)
 
 y: np.ndarray = selected_data.pop('class').values #class
 X: np.ndarray = selected_data.values
@@ -55,10 +55,11 @@ tstX_normalized = normalization(tstX)
 # Decision trees
 #decision_trees(trnX_normalized, trnY, tstX_normalized, tstY)
 #decision_tree_draw(trnX_normalized, trnY)
+decision_trees_cross_validation(X_normalized, y)
 
 # Random Forests
 #random_forests(trnX_normalized, trnY, tstX_normalized, tstY)
-random_forests_cross_validation(X_normalized, y)
+#random_forests_cross_validation(X_normalized, y)
 
 
 
