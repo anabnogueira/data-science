@@ -55,13 +55,15 @@ tstX_normalized = normalization(tstX)
 # Decision trees
 #decision_trees(trnX_normalized, trnY, tstX_normalized, tstY)
 #decision_tree_draw(trnX_normalized, trnY)
-decision_trees_cross_validation(X_normalized, y)
+#decision_trees_cross_validation(X_normalized, y)
 
 # Random Forests
 #random_forests(trnX_normalized, trnY, tstX_normalized, tstY)
 #random_forests_cross_validation(X_normalized, y)
 
-
+# Gradient Boosting
+gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
+gradient_boosting_cross_validation(X_normalized, y)
 
 
 

@@ -29,6 +29,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 
 
@@ -387,3 +388,59 @@ def random_forests_cross_validation(X, y):
 
 
 
+def gradient_boosting(trnX, trnY, tstX, tstY):
+
+    lr_list = [0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
+    n_estimators = [5, 10, 25, 50, 75]
+    max_features = ['sqrt', 'log2']
+    #max_depths = [2,5,7,10,12,14,17,19,20,23,25,28]
+
+    plt.figure()
+    fig, axs = plt.subplots(1, 2, figsize=(10, 4), squeeze=False)
+    
+    for k in range(len(max_features)):
+        f = max_features[k] 
+        values = {}      
+        for estimators in n_estimators:
+            yvalues = []
+            for learning_rate in lr_list:
+                    
+                gb_clf = GradientBoostingClassifier(n_estimators=estimators, learning_rate=learning_rate, max_features=f, max_depth=25, random_state=0)
+                gb_clf.fit(trnX, trnY)
+                prdY = gb_clf.predict(tstX)
+                yvalues.append(metrics.accuracy_score(tstY, prdY))
+
+            values[estimators] = yvalues
+              
+        func.multiple_line_chart(axs[0, k], lr_list, values, 'Gradient Boosting with %s features' % f,
+                                 'learning_rate',
+                                 'accuracy', percentage=True)    
+    
+    plt.show()
+
+
+def gradient_boosting_cross_validation(X,y):
+
+    lr_list = [0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
+    n_estimators = [5, 10, 25, 50, 75]
+    max_features = ['sqrt', 'log2']
+    #max_depths = [2,5,7,10,12,14,17,19,20,23,25,28]
+
+    plt.figure()
+    fig, axs = plt.subplots(1, 2, figsize=(10, 4), squeeze=False)
+    for k in range(len(max_features)):
+        f = max_features[k] 
+        values = {}      
+        for estimators in n_estimators:
+            yvalues = []
+            for learning_rate in lr_list:
+                gb_clf = GradientBoostingClassifier(n_estimators=estimators, learning_rate=learning_rate, max_features=f, max_depth=25, random_state=0)
+                scores = cross_val_score(gb_clf, X, y, cv=10)
+                yvalues.append(scores.mean())
+
+            values[estimators] = yvalues
+
+        func.multiple_line_chart(axs[0, k], lr_list, values, 'Gradient Boosting CV with %s features' % f,
+                                 'learning_rate',
+                                 'accuracy', percentage=True)
+    plt.show()
