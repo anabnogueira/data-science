@@ -6,6 +6,7 @@ import seaborn as sns
 import scipy.stats as _stats
 import numpy as np
 import time
+import xgboost as xgb
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
@@ -62,8 +63,29 @@ tstX_normalized = normalization(tstX)
 #random_forests_cross_validation(X_normalized, y)
 
 # Gradient Boosting
-gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
-gradient_boosting_cross_validation(X_normalized, y)
+#gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
+#gradient_boosting_cross_validation(X_normalized, y)
+
+
+dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
+dtest = xgb.DMatrix(tstX, label=tstY)
+
+param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'binary:logistic'}
+num_round = 2
+
+print('running cross validation')
+xgb.cv(param, dtrain, num_round, nfold=5,
+       metrics={'error'}, seed=0,
+       callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
+
+print('running cross validation, disable standard deviation display')
+# do cross validation, this will print result out as
+# [iteration]  metric_name:mean_value
+res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
+             metrics={'error'}, seed=0,
+             callbacks=[xgb.callback.print_evaluation(show_stdv=False),
+                        xgb.callback.early_stop(3)])
+print(res)
 
 
 
