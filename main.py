@@ -29,17 +29,23 @@ from sklearn.feature_selection import SelectKBest, f_classif
 register_matplotlib_converters()
 data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
+#print(data.columns)
+
 
 selected_data = feature_selection(data, 0.8)
 
+
 def sep_data(data):
-	y: np.ndarray = data.pop('class').values #class
-	X: np.ndarray = data.values
-	labels = pd.unique(y)
+    y: np.ndarray = data.pop('class').values #class
+    X: np.ndarray = data.values
 
-	return y,X
+    X_columns = data.columns
+    labels = pd.unique(y)
+
+    return y,X, X_columns
 
 
+"""
 y, X = sep_data(selected_data)
 # Dta scaling
 X = minMax_data(X)
@@ -69,9 +75,9 @@ tstX_normalized = normalization(tstX)
 
 # Gradient Boosting
 #gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
-#gradient_boosting_cross_validation(X_normalized, y)"""
+#gradient_boosting_cross_validation(X_normalized, y)
 
-"""
+
 dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
 dtest = xgb.DMatrix(tstX, label=tstY)
 
@@ -93,12 +99,44 @@ res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
 print(res)
 """
 
-y, X = sep_data(data)
-X = minMax_data(X)
 
-print(X.shape)
 
-X_new = SelectKBest(f_classif, k=10).fit_transform(X,y)
+y, X, X_columns = sep_data(data)
+#print(X_columns)
+#print(type(X_columns))
+X_collumns_name = X_columns.tolist()
 
-print(X_new)
-print(X_new.shape)
+X_df = pd.DataFrame(X, columns=X_collumns_name)
+#print(X_df.columns)
+#print(type(X_df.columns))
+
+
+selector = SelectKBest(f_classif, k=10)
+X_new = selector.fit_transform(X_df, y)
+names = X_df.columns.values[selector.get_support()]
+
+scores = selector.scores_[selector.get_support()]
+#names_scores = list(zip(names, scores))
+#ns_df = pd.DataFrame(data = names_scores, columns=['Feat_names', 'F_Scores'])
+#ns_df_sorted = ns_df.sort_values(['F_Scores', 'Feat_names'], ascending = [False, True])
+
+
+X_KBest_df = pd.DataFrame(X_new, columns=names)
+
+
+X_KBest_copy = X_KBest_df.copy()
+for col in X_KBest_copy:
+    X_KBest_copy[col] = pd.cut(X_KBest_copy[col], 3, labels=['0','1','2'])
+#X_KBest_copy.head(5)
+print(type(X_KBest_copy))
+print(X_KBest_copy.shape)
+print(X_KBest_copy.head(5))
+
+
+
+dummylist = []
+for att in X_KBest_copy:
+    if att in ['a01','a02']: X_KBest_copy[att] = X_KBest_copy[att].astype('category')
+    dummylist.append(pd.get_dummies(X_KBest_copy[[att]]))
+dummified_df = pd.concat(dummylist, axis=1)
+print(dummified_df.head(5))
