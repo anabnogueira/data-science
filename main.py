@@ -6,6 +6,7 @@ import seaborn as sns
 import scipy.stats as _stats
 import numpy as np
 import time
+import csv
 #import xgboost as xgb
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
@@ -23,6 +24,7 @@ from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
+from mlxtend.frequent_patterns import apriori, association_rules #for ARM
 
 
 """ MAIN """
@@ -128,9 +130,9 @@ X_KBest_copy = X_KBest_df.copy()
 for col in X_KBest_copy:
     X_KBest_copy[col] = pd.cut(X_KBest_copy[col], 3, labels=['0','1','2'])
 #X_KBest_copy.head(5)
-print(type(X_KBest_copy))
-print(X_KBest_copy.shape)
-print(X_KBest_copy.head(5))
+#print(type(X_KBest_copy))
+#print(X_KBest_copy.shape)
+#print(X_KBest_copy.head(5))
 
 
 
@@ -139,4 +141,21 @@ for att in X_KBest_copy:
     if att in ['a01','a02']: X_KBest_copy[att] = X_KBest_copy[att].astype('category')
     dummylist.append(pd.get_dummies(X_KBest_copy[[att]]))
 dummified_df = pd.concat(dummylist, axis=1)
-print(dummified_df.head(5))
+#print(dummified_df.head(5))
+
+
+
+minsup = 0.35
+frequent_itemsets = apriori(dummified_df, min_support=minsup, use_colnames=True)
+
+
+
+minconf = 0.9
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=minconf)
+rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
+ex = rules[(rules['antecedent_len']>=2)]
+
+
+export = ex.to_csv(r'out.csv', index=None, header=True)
+
+
