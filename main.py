@@ -6,7 +6,7 @@ import seaborn as sns
 import scipy.stats as _stats
 import numpy as np
 import time
-import xgboost as xgb
+#import xgboost as xgb
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
@@ -22,7 +22,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn.feature_selection import SelectKBest, f_classif
 
 
 """ MAIN """
@@ -32,13 +32,18 @@ data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
 selected_data = feature_selection(data, 0.8)
 
-y: np.ndarray = selected_data.pop('class').values #class
-X: np.ndarray = selected_data.values
-labels = pd.unique(y)
+def sep_data(data):
+	y: np.ndarray = data.pop('class').values #class
+	X: np.ndarray = data.values
+	labels = pd.unique(y)
 
+	return y,X
+
+
+y, X = sep_data(selected_data)
 # Dta scaling
 X = minMax_data(X)
-
+#y = sep_data(selected_data)[0]
 # Data split
 trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
@@ -64,9 +69,9 @@ tstX_normalized = normalization(tstX)
 
 # Gradient Boosting
 #gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
-#gradient_boosting_cross_validation(X_normalized, y)
+#gradient_boosting_cross_validation(X_normalized, y)"""
 
-
+"""
 dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
 dtest = xgb.DMatrix(tstX, label=tstY)
 
@@ -86,6 +91,14 @@ res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
              callbacks=[xgb.callback.print_evaluation(show_stdv=False),
                         xgb.callback.early_stop(3)])
 print(res)
+"""
 
+y, X = sep_data(data)
+X = minMax_data(X)
 
+print(X.shape)
 
+X_new = SelectKBest(f_classif, k=10).fit_transform(X,y)
+
+print(X_new)
+print(X_new.shape)
