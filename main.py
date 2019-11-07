@@ -112,7 +112,7 @@ X_df = pd.DataFrame(X, columns=X_collumns_name)
 #print(X_df.columns)
 #print(type(X_df.columns))
 
-
+#kBest saving columns names
 selector = SelectKBest(f_classif, k=10)
 X_new = selector.fit_transform(X_df, y)
 names = X_df.columns.values[selector.get_support()]
@@ -125,36 +125,46 @@ scores = selector.scores_[selector.get_support()]
 
 X_KBest_df = pd.DataFrame(X_new, columns=names)
 
+#print(X_KBest_df.head(5))
+export1 = X_KBest_df.to_csv(r'x_Kbest.csv', index=None, header=True)
+
 
 X_KBest_copy = X_KBest_df.copy()
 for col in X_KBest_copy:
     X_KBest_copy[col] = pd.cut(X_KBest_copy[col], 3, labels=['0','1','2'])
+
 #X_KBest_copy.head(5)
 #print(type(X_KBest_copy))
 #print(X_KBest_copy.shape)
 #print(X_KBest_copy.head(5))
+export2 = X_KBest_copy.to_csv(r'x_Kbest_copy.csv', index=None, header=True)
+
 
 
 
 dummylist = []
 for att in X_KBest_copy:
-    if att in ['a01','a02']: X_KBest_copy[att] = X_KBest_copy[att].astype('category')
+    #if att in ['a01','a02']: X_KBest_copy[att] = X_KBest_copy[att].astype('category')
     dummylist.append(pd.get_dummies(X_KBest_copy[[att]]))
 dummified_df = pd.concat(dummylist, axis=1)
-#print(dummified_df.head(5))
+print(dummified_df.head(5))
+export2 = dummified_df.to_csv(r'dummified_df.csv', index=None, header=True)
 
 
 
-minsup = 0.35
-frequent_itemsets = apriori(dummified_df, min_support=minsup, use_colnames=True)
 
 
+minsup_list = [0.35, 0.65]
+sup = 0.35
+for minsup in minsup_list:
+    #print(minsup)
+    frequent_itemsets = apriori(dummified_df, min_support=sup, use_colnames=True)
 
-minconf = 0.9
-rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=minconf)
-rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
-ex = rules[(rules['antecedent_len']>=2)]
-
+    minconf = 0.9
+    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=minconf)
+    rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
+    ex = rules[(rules['antecedent_len']>=2)][0:10]
+    #print(ex)
 
 export = ex.to_csv(r'out.csv', index=None, header=True)
 
