@@ -156,54 +156,99 @@ def select_Kbest(X, k):
 
 #export1 = X_KBest_df.to_csv(r'x_Kbest.csv', index=None, header=True)
 
-X_k10_best_df = select_Kbest(X, 10)
+def cut(X_df, bins, labels):
+    X_copy = X_df.copy()
+
+    for col in X_copy:
+        X_copy[col] = pd.cut(X_copy[col], bins, labels=labels)
+
+    return X_copy
 
 
-X_KBest_copy = X_k10_best_df.copy()
-for col in X_KBest_copy:
-    X_KBest_copy[col] = pd.cut(X_KBest_copy[col], 3, labels=['0','1','2'])
 
+def qcut(X_df, quantils, label):
+    X_copy = X_df.copy()
+    for col in X_copy:
+        X_copy[col] = pd.qcut(X_copy[col], quantils, labels = label)
+    return X_copy
 
-newdf = X_k10_best_df.copy()
-for col in newdf:
-    newdf[col] = pd.qcut(newdf[col],3,labels=['0','1','2'])
-
-#export2 = X_KBest_copy.to_csv(r'x_Kbest_copy.csv', index=None, header=True)
 
 "DYMMY"
-dummylist = []
-for att in X_KBest_copy:
-    dummylist.append(pd.get_dummies(X_KBest_copy[[att]]))
-dummified_df = pd.concat(dummylist, axis=1)
-#print(dummified_df.head(5))
-export2 = dummified_df.to_csv(r'dummified_df.csv', index=None, header=True)
+def dummyfication(X_df):
+    dummylist = []
+    for att in X_df:
+        dummylist.append(pd.get_dummies(X_df[[att]]))
+    dummified_df = pd.concat(dummylist, axis=1)
+    #export2 = dummified_df.to_csv(r'dummified_df.csv', index=None, header=True)
+    
+    return dummified_df
+
 
 
 "ASSOCIATION RULES USING APRIORI"
-minsup_list = [0.35, 0.65]
-sup = 0.35
-for minsup in minsup_list:
+def assRules_w_apriori(dummified_df):
+    #min_support_list = [0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95]
+    #mean_supp_list = []
+    #mean_lift_list = []
+    sup = 0.35
+    #for minsup in minsup_list:
     frequent_itemsets = apriori(dummified_df, min_support=sup, use_colnames=True)
 
     minconf = 0.9
     rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=minconf)
     rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
-    ex = rules[(rules['antecedent_len']>=2)][0:10]
+    assoc_rules = rules[(rules['antecedent_len']>=2)] #[0:10]
+    print(assoc_rules)
+    mean_support = assoc_rules["support"].mean()
+    #mean_supp_list.append(mean_support)
 
-#export = ex.to_csv(r'out.csv', index=None, header=True)
+    mean_lift = assoc_rules["lift"].mean()
+    #mean_lift_list.append(mean_lift)
+
+    return mean_support, mean_lift
+
+
+def cut_qcut_avg_support(X_df):
+    label = ['0','1','2']
+
+
+    X_df_cut = cut(X_df, 3, label)
+    dummy_df_cut = dummyfication(X_df_cut)
+    mean_support_cut, mean_lift_cut = assRules_w_apriori(dummy_df_cut)
+    print(mean_support_cut)
+    print(mean_lift_cut)
+
+
+    X_df_qcut = qcut(X_df, 3, label)
+    dummy_df_qcut = dummyfication(X_df_qcut)
+	#mean_support_cut, mean_lift_cut = assRules_w_apriori(dummy_df_cut)
+	#mean_support_qcut, mean_lift_qcut = assRules_w_apriori(dummy_df_qcut)
+    #print(mean_support_qcut)
+    #print(mean_lift_qcut)
+
+
+X_k10_best_df = select_Kbest(X, 10)
+cut_qcut_avg_support(X_k10_best_df)
+
+
+
+
+#dummified = dummyfication(X_copy)
+#assRules_w_apriori(dummified)
+
 
 
 "CLUSTERING"
-
+"""
 X_normalized = normalization(X)
 #print(X_normalized)
 
 #K MEANS
 def kmeans_NrClusters_inertia(X):
-    """finds best nr of clusters with inertia values
-    shows graph
-    returns best nr of clusters
-    """
+    #finds best nr of clusters with inertia values
+    #shows graph
+    #returns best nr of clusters
+    
     list_inertia_values = []
     nr_clusters_list = [2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     for nr_cluster in nr_clusters_list:
@@ -312,4 +357,4 @@ def clusters_plot(X_k2_best):
     plt.show()
 
 
-clusters_plot(X_k2_best)
+clusters_plot(X_k2_best)"""
