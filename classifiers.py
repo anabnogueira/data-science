@@ -324,6 +324,7 @@ def decision_trees_cross_validation(X, y):
 
     plt.show()
 
+
 def decision_tree_draw(trnX, trnY):
     tree = DecisionTreeClassifier(max_depth=3)
     tree.fit(trnX, trnY)

@@ -139,32 +139,12 @@ def select_Kbest(X, k):
 
     return X_KBest_df
 
-""""def cut_qcut_compare():
-    X_k10_best_cut = X_k10_best_df.copy()
-    X_k10_best_qcut = X_k10_best_df.copy()
-    bins = 2
-    labels = ['0', '1']
-    max_bins = 10
-
-    for i in range(2, max_bins):
-        for col in X_k10_best_cut:
-            X_k10_best_cut[col] = pd.cut(X_k10_best_cut[col], bins, labels=labels)
-            X_k10_best_qcut[col] = pd.cut(X_k10_best_qcut[col], bins, labels=labels)
-            bins += 1
-            labels
-"""
-
-#export1 = X_KBest_df.to_csv(r'x_Kbest.csv', index=None, header=True)
 
 def cut(X_df, bins, labels):
     X_copy = X_df.copy()
-
     for col in X_copy:
         X_copy[col] = pd.cut(X_copy[col], bins, labels=labels)
-
     return X_copy
-
-
 
 def qcut(X_df, quantils, label):
     X_copy = X_df.copy()
@@ -179,62 +159,126 @@ def dummyfication(X_df):
     for att in X_df:
         dummylist.append(pd.get_dummies(X_df[[att]]))
     dummified_df = pd.concat(dummylist, axis=1)
-    #export2 = dummified_df.to_csv(r'dummified_df.csv', index=None, header=True)
-    
+
     return dummified_df
 
 
 
 "ASSOCIATION RULES USING APRIORI"
-def assRules_w_apriori(dummified_df):
-    #min_support_list = [0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95]
-    #mean_supp_list = []
-    #mean_lift_list = []
-    sup = 0.35
-    #for minsup in minsup_list:
-    frequent_itemsets = apriori(dummified_df, min_support=sup, use_colnames=True)
 
-    minconf = 0.9
-    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=minconf)
+
+
+
+def freqt_assRule_mining(dummified_df):
+
+    frequent_itemsets = {}
+    minpaterns = 30
+    minsup = 1.0
+
+    while minsup > 0:
+
+        minsup = minsup * 0.9
+        frequent_itemsets = apriori(dummified_df, min_support=minsup, use_colnames=True)
+        if len(frequent_itemsets) >= minpaterns:
+            print("Minimum support:", minsup)
+            break
+    print("Number of found patterns:", len(frequent_itemsets))
+
+    frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
+    frqt = frequent_itemsets[(frequent_itemsets['length'] >= 3)]
+
+    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.9)
     rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
-    assoc_rules = rules[(rules['antecedent_len']>=2)] #[0:10]
+    print(rules)
+    assoc_rules = rules[(rules['antecedent_len'] >= 2)]
+    #export = assoc_rules.to_csv(r'assoc_rules.csv', index=None, header=True)
     print(assoc_rules)
     mean_support = assoc_rules["support"].mean()
-    #mean_supp_list.append(mean_support)
-
     mean_lift = assoc_rules["lift"].mean()
-    #mean_lift_list.append(mean_lift)
 
     return mean_support, mean_lift
 
 
-def cut_qcut_avg_support(X_df):
-    label = ['0','1','2']
 
+def support_cut_qcut_compare(X_df):
+    bins = [2,3,4,5,6,7,8,9,10,11,12]
+    labels = ['0','1']
+    label = 1
+    avg_supports_cut = []
+    avg_supports_qcut = []
 
-    X_df_cut = cut(X_df, 3, label)
-    dummy_df_cut = dummyfication(X_df_cut)
-    mean_support_cut, mean_lift_cut = assRules_w_apriori(dummy_df_cut)
-    print(mean_support_cut)
-    print(mean_lift_cut)
+    for bin in bins:
+        print("bins  = ", bin)
+        """X_df_cut = cut(X_df, bin, labels)
+        dummy_df_cut = dummyfication(X_df_cut)
+        print("cut:")
+        mean_support_cut, mean_lift_cut = freqt_assRule_mining(dummy_df_cut)
+        print("mean_support_cut = ", mean_support_cut)
+        avg_supports_cut.append(mean_support_cut)"""
 
+        X_df_qcut = qcut(X_df, bin, labels)
+        dummy_df_qcut = dummyfication(X_df_qcut)
+        print("qcut:")
+        mean_support_qcut, mean_lift_qcut = freqt_assRule_mining(dummy_df_qcut)
+        print("mean_support_qcut = ", mean_support_qcut)
+        avg_supports_qcut.append(mean_support_qcut)
+        print("\n")
 
-    X_df_qcut = qcut(X_df, 3, label)
-    dummy_df_qcut = dummyfication(X_df_qcut)
-	#mean_support_cut, mean_lift_cut = assRules_w_apriori(dummy_df_cut)
-	#mean_support_qcut, mean_lift_qcut = assRules_w_apriori(dummy_df_qcut)
-    #print(mean_support_qcut)
-    #print(mean_lift_qcut)
+        bin += 1
+        label += 1
+        labels.append(str(label))
+    print("avg_supports_cut :", avg_supports_cut)
+    print("avg_supports_qcut :", avg_supports_qcut)
+
+    """plt.plot(bin, avg_supports_cut, color='g')
+    plt.plot(bin, avg_supports_qcut, color='orange')
+    plt.xlabel('Number of bins/ quantiles')
+    plt.ylabel('Average support')
+    plt.title('Average support values through cut and qcut')
+    plt.show()"""
+
+def lift_cut_qcut_compare(X_df):
+    bins = [2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    labels = ['0','1']
+    label = 1
+    avg_lifts = []
+
+    for bin in bins:
+        X_df_cut = cut(X_df, bin, labels)
+        dummy_df_cut = dummyfication(X_df_cut)
+        mean_support_cut, mean_lift_cut = freqt_assRule_mining(dummy_df_cut)
+        avg_lifts.append(mean_lift_cut)
+
+        bin += 1
+        label += 1
+
+        labels.append(str(label))
+
+    # shows graph
+    plt.title("Lift values through cut and qcut")
+    plt.xlabel("Number of bins/ quantiles")
+    plt.ylabel("Average support ")
+
+    plt.plot(bins, avg_lifts)
+    plt.show()
+
 
 
 X_k10_best_df = select_Kbest(X, 10)
-cut_qcut_avg_support(X_k10_best_df)
+support_cut_qcut_compare(X_k10_best_df)
+"""X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
+dummified_df_cut = dummyfication(X_df_cut)
+freqt_assRule_mining(dummified_df_cut)
+
+X_df_qcut = qcut(X_k10_best_df, 3, ['0','1','2'])
+dummified_df_qcut = dummyfication(X_df_qcut)
+freqt_assRule_mining(dummified_df_qcut)
+"""
+
+#support_cut_qcut_compare(X_k10_best_df)
+#lift_cut_qcut_compare(X_k10_best_df)
 
 
-
-
-#dummified = dummyfication(X_copy)
-#assRules_w_apriori(dummified)
 
 
 
