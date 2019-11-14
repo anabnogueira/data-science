@@ -38,10 +38,12 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from sklearn.metrics.pairwise import pairwise_distances_argmin
 from sklearn.datasets.samples_generator import make_blobs
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_selection import RFECV
 from sklearn.datasets import make_classification
+from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
+from sklearn.feature_selection import SelectKBest
 
 
 """ MAIN """
@@ -63,7 +65,7 @@ def sep_data(data):
     X_columns = data.columns
     labels = pd.unique(y)
 
-    return y,X, X_columns
+    return y, X, X_columns
 
 
 """Data preparation with func feature_selection(0.8)"""
@@ -129,7 +131,7 @@ y, X, X_columns = sep_data(data)
 X_collumns_name = X_columns.tolist()
 
 X_df = pd.DataFrame(X, columns=X_collumns_name)
-
+"""
 def wrapper(X,y):
     print("asdfghhjhgfds")
     # define and apply the wrapper
@@ -148,7 +150,8 @@ def wrapper(X,y):
     plt.show()
 
 
-wrapper(X,y)
+wrapper(X,y)"""
+
 
 "select kBest and save columns names"
 def select_Kbest(X, k):
@@ -160,6 +163,32 @@ def select_Kbest(X, k):
     X_KBest_df = pd.DataFrame(X_new, columns=names)
 
     return X_KBest_df
+
+
+
+
+
+def svc_cross_validation(X, y):
+    k = [10, 20, 30, 40, 50, 100, 150, 200]
+    yvalues = []
+    for n in k:
+
+        X_new = SelectKBest(k=n).fit_transform(X, y)
+        classifier = SVC()
+        print("k = ", n)
+        scores = cross_val_score(classifier, X_new, y, cv=3)
+        print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        yvalues.append(scores.mean())
+    
+    #plt.figure()
+    #func.multiple_line_chart(plt.gca(), k, yvalues, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
+    #plt.show()
+
+svc_cross_validation(X, y)
+
+
+
+
 
 
 "ASSOCIATION RULES USING APRIORI"
@@ -304,6 +333,8 @@ freqt_assRule_mining(dummified_df_qcut)
 
 X_normalized = normalization(X)
 #print(X_normalized)
+
+
 
 #K MEANS
 def kmeans_NrClusters_inertia(X):
