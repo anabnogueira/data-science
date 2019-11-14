@@ -38,6 +38,10 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from sklearn.metrics.pairwise import pairwise_distances_argmin
 from sklearn.datasets.samples_generator import make_blobs
+from sklearn.svm import SVC
+from sklearn.model_selection import StratifiedKFold
+from sklearn.feature_selection import RFECV
+from sklearn.datasets import make_classification
 
 
 """ MAIN """
@@ -126,9 +130,27 @@ X_collumns_name = X_columns.tolist()
 
 X_df = pd.DataFrame(X, columns=X_collumns_name)
 
+def wrapper(X,y):
+    print("asdfghhjhgfds")
+    # define and apply the wrapper
+    classifier = SVC(kernel="linear")
+    print("asdfghjhgfdfs")
+    rfecv = RFECV(estimator=classifier, step=1, cv=2, scoring='accuracy')
+    print("sdfgvhhgfdfsdasdf")
+    rfecv.fit(X, y)
+    print("asdfghfds")
+
+    print("Optimal number of features : %d" % rfecv.n_features_)
+    plt.figure()
+    plt.xlabel("Number of features selected")
+    plt.ylabel("Cross validation score (nb of correct classifications)")
+    plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    plt.show()
+
+
+wrapper(X,y)
 
 "select kBest and save columns names"
-
 def select_Kbest(X, k):
     X_df = pd.DataFrame(X, columns=X_collumns_name)
     selector = SelectKBest(f_classif, k=k)
@@ -138,6 +160,9 @@ def select_Kbest(X, k):
     X_KBest_df = pd.DataFrame(X_new, columns=names)
 
     return X_KBest_df
+
+
+"ASSOCIATION RULES USING APRIORI"
 
 
 def cut(X_df, bins, labels):
@@ -164,15 +189,11 @@ def dummyfication(X_df):
 
 
 
-"ASSOCIATION RULES USING APRIORI"
-
-
-
 
 def freqt_assRule_mining(dummified_df):
 
     frequent_itemsets = {}
-    minpaterns = 30
+    minpaterns = 300
     minsup = 1.0
 
     while minsup > 0:
@@ -180,19 +201,19 @@ def freqt_assRule_mining(dummified_df):
         minsup = minsup * 0.9
         frequent_itemsets = apriori(dummified_df, min_support=minsup, use_colnames=True)
         if len(frequent_itemsets) >= minpaterns:
-            print("Minimum support:", minsup)
+            #print("Minimum support:", minsup)
             break
-    print("Number of found patterns:", len(frequent_itemsets))
+    #print("Number of found patterns:", len(frequent_itemsets))
 
     frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
     frqt = frequent_itemsets[(frequent_itemsets['length'] >= 3)]
 
     rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.9)
     rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
-    print(rules)
+    #print(rules)
     assoc_rules = rules[(rules['antecedent_len'] >= 2)]
     #export = assoc_rules.to_csv(r'assoc_rules.csv', index=None, header=True)
-    print(assoc_rules)
+    #print(assoc_rules)
     mean_support = assoc_rules["support"].mean()
     mean_lift = assoc_rules["lift"].mean()
 
@@ -201,71 +222,71 @@ def freqt_assRule_mining(dummified_df):
 
 
 def support_cut_qcut_compare(X_df):
-    bins = [2,3,4,5,6,7,8,9,10,11,12]
+    bins = [2,3,4,5,6,7,8,9,10]
     labels = ['0','1']
     label = 1
     avg_supports_cut = []
     avg_supports_qcut = []
 
     for bin in bins:
-        print("bins  = ", bin)
-        """X_df_cut = cut(X_df, bin, labels)
+        X_df_cut = cut(X_df, bin, labels)
         dummy_df_cut = dummyfication(X_df_cut)
-        print("cut:")
         mean_support_cut, mean_lift_cut = freqt_assRule_mining(dummy_df_cut)
-        print("mean_support_cut = ", mean_support_cut)
-        avg_supports_cut.append(mean_support_cut)"""
+        avg_supports_cut.append(mean_support_cut)
 
         X_df_qcut = qcut(X_df, bin, labels)
         dummy_df_qcut = dummyfication(X_df_qcut)
-        print("qcut:")
         mean_support_qcut, mean_lift_qcut = freqt_assRule_mining(dummy_df_qcut)
-        print("mean_support_qcut = ", mean_support_qcut)
         avg_supports_qcut.append(mean_support_qcut)
-        print("\n")
 
         bin += 1
         label += 1
         labels.append(str(label))
-    print("avg_supports_cut :", avg_supports_cut)
-    print("avg_supports_qcut :", avg_supports_qcut)
 
-    """plt.plot(bin, avg_supports_cut, color='g')
-    plt.plot(bin, avg_supports_qcut, color='orange')
+
+    plt.plot(bins, avg_supports_cut, color='g')
+    plt.plot(bins, avg_supports_qcut, color='orange')
     plt.xlabel('Number of bins/ quantiles')
     plt.ylabel('Average support')
     plt.title('Average support values through cut and qcut')
-    plt.show()"""
+    #plt.show()
+
 
 def lift_cut_qcut_compare(X_df):
-    bins = [2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    labels = ['0','1']
+    bins = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+    labels = ['0', '1']
     label = 1
-    avg_lifts = []
+    avg_lift_cut = []
+    avg_lift_qcut = []
 
     for bin in bins:
         X_df_cut = cut(X_df, bin, labels)
         dummy_df_cut = dummyfication(X_df_cut)
         mean_support_cut, mean_lift_cut = freqt_assRule_mining(dummy_df_cut)
-        avg_lifts.append(mean_lift_cut)
+        avg_lift_cut.append(mean_lift_cut)
+
+        X_df_qcut = qcut(X_df, bin, labels)
+        dummy_df_qcut = dummyfication(X_df_qcut)
+        mean_support_qcut, mean_lift_qcut = freqt_assRule_mining(dummy_df_qcut)
+        avg_lift_qcut.append(mean_lift_qcut)
 
         bin += 1
         label += 1
-
         labels.append(str(label))
 
-    # shows graph
-    plt.title("Lift values through cut and qcut")
-    plt.xlabel("Number of bins/ quantiles")
-    plt.ylabel("Average support ")
-
-    plt.plot(bins, avg_lifts)
-    plt.show()
+    plt.plot(bins, avg_lift_cut, color='g')
+    plt.plot(bins, avg_lift_qcut, color='orange')
+    plt.xlabel('Number of bins/ quantiles')
+    plt.ylabel('Average lift')
+    plt.title('Average lift values through cut and qcut')
+    #plt.show()
 
 
 
 X_k10_best_df = select_Kbest(X, 10)
 support_cut_qcut_compare(X_k10_best_df)
+lift_cut_qcut_compare(X_k10_best_df)
+
 """X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
 dummified_df_cut = dummyfication(X_df_cut)
 freqt_assRule_mining(dummified_df_cut)
@@ -275,15 +296,12 @@ dummified_df_qcut = dummyfication(X_df_qcut)
 freqt_assRule_mining(dummified_df_qcut)
 """
 
-#support_cut_qcut_compare(X_k10_best_df)
-#lift_cut_qcut_compare(X_k10_best_df)
-
 
 
 
 
 "CLUSTERING"
-"""
+
 X_normalized = normalization(X)
 #print(X_normalized)
 
@@ -398,7 +416,7 @@ def clusters_plot(X_k2_best):
     ax.set_xticks(())
     ax.set_yticks(())
 
-    plt.show()
+    #plt.show()
 
 
-clusters_plot(X_k2_best)"""
+clusters_plot(X_k2_best)
