@@ -50,9 +50,14 @@ from sklearn.feature_selection import SelectKBest
 register_matplotlib_converters()
 data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 
-selected_data = feature_selection(data, 0.8)
+
+#######################################################################################################################
+#### DATA PROCESSING #################################################################################################
+#######################################################################################################################
 
 
+"1º fazer isto para eliminar redundacias"
+selected_data = feature_selection(data, 0.9)
 
 def sep_data(data):
     """divide in x and y (removing class
@@ -66,6 +71,38 @@ def sep_data(data):
     labels = pd.unique(y)
 
     return y, X, X_columns
+
+
+def best_number_features_NB(X, y):
+    nr_features = [10, 20, 30, 40, 50, 60, 70]
+    yvalues = []
+
+    for n in nr_features:
+        X_new = SelectKBest(k=n).fit_transform(X, y)
+        classifier = GaussianNB()
+        scores = cross_val_score(classifier, X_new, y, cv=3)
+        #print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+        yvalues.append(scores.mean())
+
+
+    plt.plot(nr_features, yvalues, color='g')
+    plt.xlabel('Number of features')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy for number of features through Naive Bayes classifier')
+    plt.show()
+
+
+"select kBest and save columns names"
+def select_Kbest(X, k):
+    "select the K best an returns a data frame"
+    X_df = pd.DataFrame(X, columns=X_collumns_name)
+    selector = SelectKBest(f_classif, k=k)
+    X_new = selector.fit_transform(X_df, y)
+    names = X_df.columns.values[selector.get_support()]
+    scores = selector.scores_[selector.get_support()]
+    X_KBest_df = pd.DataFrame(X_new, columns=names)
+
+    return X_KBest_df
 
 
 """Data preparation with func feature_selection(0.8)"""
@@ -125,74 +162,9 @@ print(res)
 """
 
 
-""" Data preperation for ASSOCIATION RULES  """
-y, X, X_columns = sep_data(data)
-
-X_collumns_name = X_columns.tolist()
-
-X_df = pd.DataFrame(X, columns=X_collumns_name)
-"""
-def wrapper(X,y):
-    print("asdfghhjhgfds")
-    # define and apply the wrapper
-    classifier = SVC(kernel="linear")
-    print("asdfghjhgfdfs")
-    rfecv = RFECV(estimator=classifier, step=1, cv=2, scoring='accuracy')
-    print("sdfgvhhgfdfsdasdf")
-    rfecv.fit(X, y)
-    print("asdfghfds")
-
-    print("Optimal number of features : %d" % rfecv.n_features_)
-    plt.figure()
-    plt.xlabel("Number of features selected")
-    plt.ylabel("Cross validation score (nb of correct classifications)")
-    plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-    plt.show()
-
-
-wrapper(X,y)"""
-
-
-"select kBest and save columns names"
-def select_Kbest(X, k):
-    X_df = pd.DataFrame(X, columns=X_collumns_name)
-    selector = SelectKBest(f_classif, k=k)
-    X_new = selector.fit_transform(X_df, y)
-    names = X_df.columns.values[selector.get_support()]
-    scores = selector.scores_[selector.get_support()]
-    X_KBest_df = pd.DataFrame(X_new, columns=names)
-
-    return X_KBest_df
-
-
-
-
-
-def svc_cross_validation(X, y):
-    k = [10, 20, 30, 40, 50, 100, 150, 200]
-    yvalues = []
-    for n in k:
-
-        X_new = SelectKBest(k=n).fit_transform(X, y)
-        classifier = SVC()
-        print("k = ", n)
-        scores = cross_val_score(classifier, X_new, y, cv=3)
-        print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-        yvalues.append(scores.mean())
-    
-    #plt.figure()
-    #func.multiple_line_chart(plt.gca(), k, yvalues, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
-    #plt.show()
-
-svc_cross_validation(X, y)
-
-
-
-
 
 
 "ASSOCIATION RULES USING APRIORI"
-
 
 def cut(X_df, bins, labels):
     X_copy = X_df.copy()
@@ -215,8 +187,6 @@ def dummyfication(X_df):
     dummified_df = pd.concat(dummylist, axis=1)
 
     return dummified_df
-
-
 
 
 def freqt_assRule_mining(dummified_df):
@@ -278,7 +248,7 @@ def support_cut_qcut_compare(X_df):
     plt.xlabel('Number of bins/ quantiles')
     plt.ylabel('Average support')
     plt.title('Average support values through cut and qcut')
-    #plt.show()
+    plt.show()
 
 
 def lift_cut_qcut_compare(X_df):
@@ -311,10 +281,20 @@ def lift_cut_qcut_compare(X_df):
     #plt.show()
 
 
+""" Data preperation for ASSOCIATION RULES  """
+y, X, X_columns = sep_data(selected_data)
 
-X_k10_best_df = select_Kbest(X, 10)
-support_cut_qcut_compare(X_k10_best_df)
-lift_cut_qcut_compare(X_k10_best_df)
+X_collumns_name = X_columns.tolist()
+
+#X_df = pd.DataFrame(X, columns=X_collumns_name)
+
+
+#X_df = select_Kbest(X_df, best_nr_features)
+
+best_number_features_NB(X,y)
+X_k_best_df = select_Kbest(X, 20)
+support_cut_qcut_compare(X_k_best_df)
+lift_cut_qcut_compare(X_k_best_df)
 
 """X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
 dummified_df_cut = dummyfication(X_df_cut)
@@ -352,7 +332,7 @@ def kmeans_NrClusters_inertia(X):
     #shows graph
     plt.title("K-Means and number of clusters")
     plt.xlabel("Number of Clusters")
-    plt.ylabel("Number of Inertia")
+    plt.ylabel("SEE")
 
     plt.plot(nr_clusters_list, list_inertia_values)
     #plt.show()
@@ -451,3 +431,5 @@ def clusters_plot(X_k2_best):
 
 
 clusters_plot(X_k2_best)
+
+
