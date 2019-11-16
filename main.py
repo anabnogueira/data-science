@@ -44,7 +44,7 @@ from sklearn.feature_selection import RFECV
 from sklearn.datasets import make_classification
 from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 from sklearn.feature_selection import SelectKBest
-
+from sklearn.decomposition import PCA
 
 """ MAIN """
 register_matplotlib_converters()
@@ -291,10 +291,10 @@ X_collumns_name = X_columns.tolist()
 
 #X_df = select_Kbest(X_df, best_nr_features)
 
-best_number_features_NB(X,y)
-X_k_best_df = select_Kbest(X, 20)
-support_cut_qcut_compare(X_k_best_df)
-lift_cut_qcut_compare(X_k_best_df)
+#best_number_features_NB(X,y)
+#X_k_best_df = select_Kbest(X, 20)
+#support_cut_qcut_compare(X_k_best_df)
+#lift_cut_qcut_compare(X_k_best_df)
 
 """X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
 dummified_df_cut = dummyfication(X_df_cut)
@@ -334,7 +334,7 @@ def kmeans_NrClusters_inertia(X):
     plt.xlabel("Number of Clusters")
     plt.ylabel("SEE")
 
-    plt.plot(nr_clusters_list, list_inertia_values)
+    #plt.plot(nr_clusters_list, list_inertia_values)
     #plt.show()
     
     
@@ -342,6 +342,8 @@ def k_means_sillhoutte(X, nr_cluster):
     kmeans_model = cluster.KMeans(n_clusters=nr_cluster, random_state=1).fit(X)
     y_pred = kmeans_model.labels_
     print("Silhouette:", metrics.silhouette_score(X, y_pred))
+    # return y_pred to be used in pca graph
+    return y_pred
 
 def k_means_adjusted_rand_score(y_true, nr_cluster):
     kmeans_model = cluster.KMeans(n_clusters=nr_cluster, random_state=1).fit(X) 
@@ -349,9 +351,10 @@ def k_means_adjusted_rand_score(y_true, nr_cluster):
     print("Adjusted Rand Score =", adjusted_rand_score(y_true, y_pred))
 
 
-kmeans_NrClusters_inertia(X_normalized)
+#kmeans_NrClusters_inertia(X_normalized)
 
-k_means_sillhoutte(X_normalized,6)
+# return y_pred to be used in pca graph
+y_pred_clustering = k_means_sillhoutte(X_normalized,6)
 
 k_means_adjusted_rand_score(y, 6)
 
@@ -430,6 +433,42 @@ def clusters_plot(X_k2_best):
     #plt.show()
 
 
-clusters_plot(X_k2_best)
+#clusters_plot(X_k2_best)
+
+# plot best 2 pca components colored with k-means clustering
+def pca_graph(X, y_clustered):
+
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(X)
+    principalDf = pd.DataFrame(data = principalComponents, columns = ['Principal Component 1', 'Principal Component 2'])
+
+    # turn numpy into dataframe and concat
+    y_pred_clustering_df = pd.DataFrame({'target': y_clustered})
+    finalDf = pd.concat([principalDf, y_pred_clustering_df], axis = 1)
+
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(1,1,1) 
+    ax.set_xlabel('Principal Component 1', fontsize = 12)
+    ax.set_ylabel('Principal Component 2', fontsize = 12)
+    ax.set_title('K-means clustering with 2 Principal Components', fontsize = 16)
+
+    targets = [0, 1, 2, 3, 4, 5]
+    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5']
+    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525']
+    for target, color in zip(targets,colors):
+        indicesToKeep = finalDf['target'] == target
+        ax.scatter(finalDf.loc[indicesToKeep, 'Principal Component 1'], finalDf.loc[indicesToKeep, 'Principal Component 2'], c = color, s = 75, marker='o')
+    ax.legend(target_labels)
+    ax.grid()
+
+    plt.show()
+
+pca_graph(X_normalized, y_pred_clustering)
+
+
+
+
+
+
 
 
