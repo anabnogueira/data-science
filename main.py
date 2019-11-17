@@ -7,7 +7,7 @@ import scipy.stats as _stats
 import numpy as np
 import time
 import csv
-#import xgboost as xgb
+import xgboost as xgb
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
@@ -48,7 +48,7 @@ from sklearn.decomposition import PCA
 
 """ MAIN """
 register_matplotlib_converters()
-data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
+data = pd.read_csv('data/pd.csv', index_col='id', header=1)
 
 
 #######################################################################################################################
@@ -56,7 +56,7 @@ data = pd.read_csv('data/pd.csv',  index_col = 'id', header = 1)
 #######################################################################################################################
 
 
-"1º fazer isto para eliminar redundacias"
+"1º fazer isto para eliminar redundancias"
 selected_data = feature_selection(data, 0.9)
 
 def sep_data(data):
@@ -87,8 +87,8 @@ def best_number_features_NB(X, y):
 
     plt.plot(nr_features, yvalues, color='g')
     plt.xlabel('Number of features')
-    plt.ylabel('Accuracy')
-    plt.title('Accuracy for number of features through Naive Bayes classifier')
+    plt.ylabel('Mean scores')
+    plt.title('Mean scores for number of features through Naive Bayes classifier')
     plt.show()
 
 
@@ -159,9 +159,9 @@ res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
              callbacks=[xgb.callback.print_evaluation(show_stdv=False),
                         xgb.callback.early_stop(3)])
 print(res)
+
+
 """
-
-
 
 
 "ASSOCIATION RULES USING APRIORI"
@@ -179,7 +179,7 @@ def qcut(X_df, quantils, label):
     return X_copy
 
 
-"DYMMY"
+"DUMMY"
 def dummyfication(X_df):
     dummylist = []
     for att in X_df:
@@ -358,7 +358,6 @@ y_pred_clustering = k_means_sillhoutte(X_normalized,6)
 
 k_means_adjusted_rand_score(y, 6)
 
-
 X_k2_best_df = select_Kbest(X_normalized,2)
 #print(X_k2_best_df)
 
@@ -463,12 +462,63 @@ def pca_graph(X, y_clustered):
 
     plt.show()
 
-pca_graph(X_normalized, y_pred_clustering)
+#pca_graph(X_normalized, y_pred_clustering)
+
+
+def xgboosting(X):
+    # Dta scaling
+    X = minMax_data(X)
+    #y = sep_data(selected_data)[0]
+    # Data split
+    trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
+
+    # Normalization
+    X_normalized = normalization(X)
+
+    trnX_normalized = normalization(trnX)
+    tstX_normalized = normalization(tstX)
+
+    dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
+    dtest = xgb.DMatrix(tstX, label=tstY)
+
+    param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'binary:logistic'}
+    num_round = 2
+
+    print('running cross validation')
+    xgb.cv(param, dtrain, num_round, nfold=5,
+        metrics={'error'}, seed=0,
+        callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
+
+    print('running cross validation, disable standard deviation display')
+    # do cross validation, this will print result out as
+    # [iteration]  metric_name:mean_value
+    res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
+                metrics={'error'}, seed=0,
+                callbacks=[xgb.callback.print_evaluation(show_stdv=False),
+                            xgb.callback.early_stop(3)])
+    print(res)
+
+#xgboosting(X)
 
 
 
 
 
 
+"""
+*********** 2ND DATASET ***********
+***********************************
+
+"""
+#populate here with header row
+dataset_two = pd.read_csv('data/covtype.csv', header=None)
+
+print(dataset_two.shape)
+print(dataset_two.dtypes.value_counts())
+print(dataset_two.iloc[:,[54]])
+
+
+#y2, X2 = sep_data(dataset_two)
+#knn_cross_validation(X2, y2)
 
 
