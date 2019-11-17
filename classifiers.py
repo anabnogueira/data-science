@@ -102,11 +102,11 @@ def normalization(X):
     return new_X
 
 
-def show_classBalance(data):
+def show_classBalance(data,title):
     target_count = data['class'].value_counts()
     plt.figure()
-    plt.title('Class balance')
-    plt.bar(target_count.index, target_count.values)
+    plt.title(title)
+    plt.bar(target_count.index, target_count.values, color="#4287f5")
     plt.show()
     print("\n")
 
@@ -152,26 +152,26 @@ def show_smote_over_under_sample(un_data): #compara tecnicas de balaceamento
 
 '''SMOTE'''
 def smote(trnX,trnY):
-    print('Dataset shape %s' % Counter(trnY))
+    #print('Dataset shape %s' % Counter(trnY))
     sm = SMOTE()
     trnX_smoted, trnY_smoted = sm.fit_resample(trnX, trnY)
-    print('Resampled dataset shape %s' % Counter(trnY_smoted))
+    #print('Resampled dataset shape %s' % Counter(trnY_smoted))
     return trnX_smoted, trnY_smoted
 
 
 def undersample(trnX, trnY):
-    print('Dataset shape %s' % Counter(trnY))
+    #print('Dataset shape %s' % Counter(trnY))
     rus = RandomUnderSampler(random_state=0)
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
-    print('Resampled dataset shape %s' % Counter(y_resampled))
+    #print('Resampled dataset shape %s' % Counter(y_resampled))
     return X_resampled, y_resampled
     
 
 def oversample(trnX, trnY):
-    print('Dataset shape %s' % Counter(trnY))
+    #print('Dataset shape %s' % Counter(trnY))
     rus = RandomOverSampler(random_state=0)
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
-    print('Resampled dataset shape %s' % Counter(y_resampled))
+    #print('Resampled dataset shape %s' % Counter(y_resampled))
     return X_resampled, y_resampled
 
 

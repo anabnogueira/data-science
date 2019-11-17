@@ -7,7 +7,7 @@ import scipy.stats as _stats
 import numpy as np
 import time
 import csv
-import xgboost as xgb
+#import xgboost as xgb
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
@@ -32,7 +32,7 @@ from itertools import cycle, islice
 from sklearn import datasets, metrics, cluster, mixture
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score, accuracy_score
 import time, warnings, numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import MiniBatchKMeans, KMeans
@@ -45,6 +45,10 @@ from sklearn.datasets import make_classification
 from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 from sklearn.feature_selection import SelectKBest
 from sklearn.decomposition import PCA
+from sklearn.model_selection import StratifiedShuffleSplit
+from statistics import mean
+
+
 
 """ MAIN """
 register_matplotlib_converters()
@@ -59,7 +63,7 @@ data = pd.read_csv('data/pd.csv', index_col='id', header=1)
 "1º fazer isto para eliminar redundancias"
 selected_data = feature_selection(data, 0.9)
 
-def sep_data_pd(data):
+def sep_data(data):
     """
     divide in x and y (removing class)
     returns X, y, and the colunms
@@ -74,20 +78,6 @@ def sep_data_pd(data):
     return y, X, X_columns
 
 
-def sep_data_covtype(data):
-    """
-    divide in x and y (removing class)
-    returns X, y, and the colunms
-    """
-
-    y: np.ndarray = data.iloc[:,[-1]] #class
-    data = data.iloc[:, :-1]
-    X: np.ndarray = data.values
-
-    X_columns = data.columns
-    labels = pd.unique(y)
-
-    return y, X, X_columns
 
 def best_number_features_NB(X, y):
     nr_features = [10, 20, 30, 40, 50, 60, 70]
@@ -124,7 +114,7 @@ def select_Kbest(X, k):
 """Data preparation with func feature_selection(0.8)"""
 
 """
-y, X = sep_data_pd(selected_data)
+y, X = sep_data(selected_data)
 # Dta scaling
 X = minMax_data(X)
 #y = sep_data(selected_data)[0]
@@ -298,7 +288,7 @@ def lift_cut_qcut_compare(X_df):
 
 
 """ Data preperation for ASSOCIATION RULES  """
-y, X, X_columns = sep_data_pd(selected_data)
+y, X, X_columns = sep_data(selected_data)
 
 X_collumns_name = X_columns.tolist()
 
@@ -481,10 +471,10 @@ def pca_graph(X, y_clustered):
 #pca_graph(X_normalized, y_pred_clustering)
 
 
-def xgboosting(X):
+"""def xgboosting(X):
     # Dta scaling
     X = minMax_data(X)
-    #y = sep_data_pd(selected_data)[0]
+    #y = sep_data(selected_data)[0]
     # Data split
     trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
@@ -515,7 +505,7 @@ def xgboosting(X):
     print(res)
 
 #xgboosting(X)
-
+"""
 
 
 
@@ -526,24 +516,73 @@ def xgboosting(X):
 ***********************************
 
 """
+def second_dataSet():
+    # add header column
+    header = []
+    for i in range(0, 54):
+        header.append(str(i))
+    header.append('class')
+    dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
+    return dataset_two
 
-# add header column
-header = []
-for i in range(0, 54):
-    header.append(str(i))
-header.append('class')
-dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
+dataset_two = second_dataSet()
+
+y_2, X_2, X_2_columns = sep_data(dataset_two)
 
 
-#print(dataset_two.dtypes.value_counts())
-#print(dataset_two.iloc[:,[54]])
-show_classBalance(dataset_two)
-show_smote_over_under_sample(dataset_two)
+# Data split
+trnX, tstX, trnY, tstY = train_test_split(X_2, y_2, train_size=0.7, stratify=y_2)
+
+X_smoted, Y_smoted = smote(trnX,trnY)
+
+X_under, Y_under = undersample(trnX, trnY)
+
+X_over, Y_over = oversample(trnX, trnY)
 
 
-#y2, X2, X2_cols = sep_data_pd(dataset_two)
-#y2, X2 = sep_data_covtype(dataset_two)
-#knn_cross_validation(X2, y2)
+clf = GaussianNB()
+def stratifiedShuffleSplit(X,y):
+    accValue_list = []
+
+    sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
+    sss.get_n_splits(X_smoted, Y_smoted)
+    for train_index, test_index in sss.split(X, y):
+        #print("TRAIN:", train_index, "TEST:", test_index)
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        accValue = accuracy_score(y_test, y_pred)
+        #print(accValue)
+        accValue_list.append(accValue)
+
+    mean_value = mean(accValue_list)
+    return mean_value
+
+
+"""acc_valueSmote = stratifiedShuffleSplit(X_smoted, Y_smoted)
+print(acc_valueSmote)
+
+acc_valueOver = stratifiedShuffleSplit(X_over, Y_over)
+print(acc_valueOver)
+
+acc_undersample = stratifiedShuffleSplit(X_under, Y_under)
+print(acc_undersample)
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
