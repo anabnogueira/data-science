@@ -112,7 +112,6 @@ def show_classBalance(data):
 
     min_class = target_count.idxmin()
     ind_min_class = target_count.index.get_loc(min_class)
-
     print('Minority class:', target_count[ind_min_class])
     print('Majority class:', target_count[1-ind_min_class])
     print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_class], 2), ': 1')
@@ -121,7 +120,7 @@ def show_classBalance(data):
 
 '''Balanceamento para haver o memso nr records para classe 1 e 0'''
 def show_smote_over_under_sample(un_data): #compara tecnicas de balaceamento
-    target_count = unbalace_data['class'].value_counts()
+    target_count = un_data['class'].value_counts()
     min_class = target_count.idxmin()
     ind_min_class = target_count.index.get_loc(min_class)
     

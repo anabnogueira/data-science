@@ -59,8 +59,9 @@ data = pd.read_csv('data/pd.csv', index_col='id', header=1)
 "1º fazer isto para eliminar redundancias"
 selected_data = feature_selection(data, 0.9)
 
-def sep_data(data):
-    """divide in x and y (removing class
+def sep_data_pd(data):
+    """
+    divide in x and y (removing class)
     returns X, y, and the colunms
     """
 
@@ -72,6 +73,21 @@ def sep_data(data):
 
     return y, X, X_columns
 
+
+def sep_data_covtype(data):
+    """
+    divide in x and y (removing class)
+    returns X, y, and the colunms
+    """
+
+    y: np.ndarray = data.iloc[:,[-1]] #class
+    data = data.iloc[:, :-1]
+    X: np.ndarray = data.values
+
+    X_columns = data.columns
+    labels = pd.unique(y)
+
+    return y, X, X_columns
 
 def best_number_features_NB(X, y):
     nr_features = [10, 20, 30, 40, 50, 60, 70]
@@ -108,7 +124,7 @@ def select_Kbest(X, k):
 """Data preparation with func feature_selection(0.8)"""
 
 """
-y, X = sep_data(selected_data)
+y, X = sep_data_pd(selected_data)
 # Dta scaling
 X = minMax_data(X)
 #y = sep_data(selected_data)[0]
@@ -282,7 +298,7 @@ def lift_cut_qcut_compare(X_df):
 
 
 """ Data preperation for ASSOCIATION RULES  """
-y, X, X_columns = sep_data(selected_data)
+y, X, X_columns = sep_data_pd(selected_data)
 
 X_collumns_name = X_columns.tolist()
 
@@ -468,7 +484,7 @@ def pca_graph(X, y_clustered):
 def xgboosting(X):
     # Dta scaling
     X = minMax_data(X)
-    #y = sep_data(selected_data)[0]
+    #y = sep_data_pd(selected_data)[0]
     # Data split
     trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
@@ -510,15 +526,24 @@ def xgboosting(X):
 ***********************************
 
 """
-#populate here with header row
-dataset_two = pd.read_csv('data/covtype.csv', header=None)
 
-print(dataset_two.shape)
-print(dataset_two.dtypes.value_counts())
-print(dataset_two.iloc[:,[54]])
+# add header column
+header = []
+for i in range(0, 54):
+    header.append(str(i))
+header.append('class')
+dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
 
 
-#y2, X2 = sep_data(dataset_two)
+#print(dataset_two.dtypes.value_counts())
+#print(dataset_two.iloc[:,[54]])
+show_classBalance(dataset_two)
+show_smote_over_under_sample(dataset_two)
+
+
+#y2, X2, X2_cols = sep_data_pd(dataset_two)
+#y2, X2 = sep_data_covtype(dataset_two)
 #knn_cross_validation(X2, y2)
+
 
 

@@ -55,7 +55,7 @@ def multiple_bar_chart(ax: plt.Axes, xvalues: list, yvalues: dict, title: str, x
     step = width / len(yvalues)
     k = 0
     for name, y in yvalues.items():
-        ax.bar(x + k * step, y, step, label=name)
+        ax.bar(x + k * step, y, step, label=name, color="#6A4A3C")
         k += 1
     ax.legend(loc='lower center', ncol=len(yvalues), bbox_to_anchor=(0.5, -0.2), fancybox = True, shadow = True)    
 
