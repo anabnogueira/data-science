@@ -572,6 +572,19 @@ print(acc_undersample)
 """
 
 
+def pca_variance(X):
+
+    pca_components = ["PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"]
+    
+    pca = PCA(n_components=10)
+    principalComponents = pca.fit_transform(X)
+    variance_ratio = pca.explained_variance_ratio_
+
+    plt.figure()
+    plt.title('Principal Components')
+    plt.ylabel("Variance")
+    plt.bar(pca_components,variance_ratio)
+    plt.show()
 
 
 
