@@ -23,7 +23,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
-from imblearn.under_sampling import RandomUnderSampler
+from imblearn.under_sampling import RandomUnderSampler, InstanceHardnessThreshold, ClusterCentroids, \
+    EditedNearestNeighbours, AllKNN
 from collections import Counter
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
@@ -106,15 +107,21 @@ def show_classBalance(data,title):
     target_count = data['class'].value_counts()
     plt.figure()
     plt.title(title)
-    plt.bar(target_count.index, target_count.values, color="#4287f5")
+    classes, count = zip(*sorted(zip(target_count.index,target_count.values)))
+
+    ls = []
+    for el in classes:
+        ls = ls + [str(el)]
+
+    plt.bar(ls, count, color="#4287f5")
     plt.show()
     print("\n")
 
-    min_class = target_count.idxmin()
+    """min_class = target_count.idxmin()
     ind_min_class = target_count.index.get_loc(min_class)
     print('Minority class:', target_count[ind_min_class])
     print('Majority class:', target_count[1-ind_min_class])
-    print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_class], 2), ': 1')
+    print('Proportion:', round(target_count[ind_min_class] / target_count[1-ind_min_class], 2), ': 1')"""
     
 
 
@@ -165,6 +172,11 @@ def undersample(trnX, trnY):
     X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
     #print('Resampled dataset shape %s' % Counter(y_resampled))
     return X_resampled, y_resampled
+
+def undersample_AllNN(trnX, trnY):
+    rus = AllKNN(random_state=0)
+    X_resampled, y_resampled = rus.fit_resample(trnX, trnY)
+    return X_resampled, y_resampled
     
 
 def oversample(trnX, trnY):
@@ -180,14 +192,31 @@ def oversample(trnX, trnY):
 ####   CLASSIFIERS    ###############################################################################################
 ######################################################################################################################
 
-def gaussianNB(trnX, tstX, trnY, tstY, labels, name):
+def NB_crossValidation(X,y):
+    clfG = GaussianNB()
+    clfM = MultinomialNB()
+    clfB = BernoulliNB()
+    print("Naive Bayes")
+    print("\tGaussian")
+    scores = cross_val_score(clfG, X, y, cv=10)
+    print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print("\tMultinomial")
+    scores = cross_val_score(clfM, X, y, cv=10)
+    print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print("\tBernoulli")
+    scores = cross_val_score(clfB, X, y, cv=10)
+    print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+
+
+def gaussianNB(trnX, tstX, trnY, tstY, labels):
     clf = GaussianNB()
     clf.fit(trnX, trnY)
     prdY = clf.predict(tstX)
     cnf_mtx = metrics.confusion_matrix(tstY, prdY, labels)
 
-    func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels, name)
-
+    func.plot_confusion_matrix(cnf_mtx, tstY, prdY, labels, "Confusion Matrix with Naive Bayes")
+    plt.show()
     return cnf_mtx
 
 

@@ -60,9 +60,6 @@ data = pd.read_csv('data/pd.csv', index_col='id', header=1)
 #######################################################################################################################
 
 
-"1º fazer isto para eliminar redundancias"
-selected_data = feature_selection(data, 0.9)
-
 def sep_data(data):
     """
     divide in x and y (removing class)
@@ -98,7 +95,7 @@ def best_number_features_NB(X, y):
     plt.show()
 
 
-"select kBest and save columns names"
+"select kBest and save columns names FOR UNSUPERVISED"
 def select_Kbest(X, k):
     "select the K best an returns a data frame"
     X_df = pd.DataFrame(X, columns=X_collumns_name)
@@ -111,21 +108,69 @@ def select_Kbest(X, k):
     return X_KBest_df
 
 
-"""Data preparation with func feature_selection(0.8)"""
+
+######################################################################################################################
+####   CLASSIFICATION      ##############################################################################
+######################################################################################################################
+"1º fazer isto para eliminar redundancias"
+
+show_classBalance(data, "Class Balance")
+
+selected_data = feature_selection(data, 0.9)
+
+y, X, X_columns = sep_data(selected_data)
+
+trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y)
+
+# Dta scaling
+trnX = minMax_data(trnX)
+tstX = minMax_data(tstX)
+
+print("puro")
+NB_crossValidation(trnX,trnY)
+
+
+X_smoted, Y_smoted = smote(trnX,trnY)
+X_over, Y_over = oversample(trnX, trnY)
+X_under, Y_under = undersample(trnX, trnY)
+
+print("smote")
+NB_crossValidation(X_smoted,Y_smoted)
+print("over")
+NB_crossValidation(X_over,Y_over)
+print("under")
+NB_crossValidation(X_under,Y_under)
+
+
+# Uses NB to show confusion matrix
+
+# NB with oversampling without normalisation
+#trnX, trnY = oversample(trnX, trnY)
+#gaussianNB(trnX, tstX, trnY, tstY, labels=[0, 1])
+#compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Oversampling")
+"""
+# NB with undersampling without normalisation
+trnX, trnY = undersample(trnX, trnY)
+gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with Undersampling")
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Undersampling")
+
+# NB with undersampling without normalisation
+trnX, trnY = smote(trnX, trnY)
+gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with SMOTE")
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers with SMOTE")
 
 """
-y, X = sep_data(selected_data)
-# Dta scaling
-X = minMax_data(X)
+
+
+#print(X)
 #y = sep_data(selected_data)[0]
 # Data split
-trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
 
 # Normalization
-X_normalized = normalization(X)
+#X_normalized = normalization(X)
 
-trnX_normalized = normalization(trnX)
-tstX_normalized = normalization(tstX)
+#cnf_mtx = gaussianNB(trnX, tstX, trnY, tstY, "labels", "nome")
+
 
 
 #knn(trnX_normalized,trnY,tstX_normalized,tstY)
@@ -145,7 +190,7 @@ tstX_normalized = normalization(tstX)
 #gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
 #gradient_boosting_cross_validation(X_normalized, y)
 
-
+""""
 dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
 dtest = xgb.DMatrix(tstX, label=tstY)
 
@@ -172,6 +217,10 @@ print(res)
 
 "ASSOCIATION RULES USING APRIORI"
 
+
+######################################################################################################################
+####   ASSOCIATION RULES USING APRIORI  ##############################################################################
+######################################################################################################################
 def cut(X_df, bins, labels):
     X_copy = X_df.copy()
     for col in X_copy:
@@ -287,7 +336,12 @@ def lift_cut_qcut_compare(X_df):
     #plt.show()
 
 
-""" Data preperation for ASSOCIATION RULES  """
+
+######################################################################################################################
+####   ASSOCIATION RULES  #############################################################################################
+######################################################################################################################
+#Data preperation for ASSOCIATION RULES  """
+""""
 y, X, X_columns = sep_data(selected_data)
 
 X_collumns_name = X_columns.tolist()
@@ -302,21 +356,23 @@ X_collumns_name = X_columns.tolist()
 #support_cut_qcut_compare(X_k_best_df)
 #lift_cut_qcut_compare(X_k_best_df)
 
-"""X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
+X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
 dummified_df_cut = dummyfication(X_df_cut)
 freqt_assRule_mining(dummified_df_cut)
 
 X_df_qcut = qcut(X_k10_best_df, 3, ['0','1','2'])
 dummified_df_qcut = dummyfication(X_df_qcut)
 freqt_assRule_mining(dummified_df_qcut)
+
 """
 
 
 
 
-
-"CLUSTERING"
-
+######################################################################################################################
+####   CLUSTERING  #############################################################################################
+######################################################################################################################
+"""""
 X_normalized = normalization(X)
 #print(X_normalized)
 
@@ -341,7 +397,7 @@ def kmeans_NrClusters_inertia(X):
     plt.ylabel("Inertia")
 
     plt.plot(nr_clusters_list, list_inertia_values, linewidth=4)
-    plt.show()
+    #plt.show()
     
     
 def k_means_sillhoutte(X, nr_cluster):
@@ -440,6 +496,7 @@ def clusters_plot(X_k2_best):
 
 #clusters_plot(X_k2_best)
 
+
 # plot best 2 pca components colored with k-means clustering
 def pca_graph(X, y_clustered):
 
@@ -466,7 +523,7 @@ def pca_graph(X, y_clustered):
     ax.legend(target_labels)
     ax.grid()
 
-    plt.show()
+    #plt.show()
 
 #pca_graph(X_normalized, y_pred_clustering)
 
@@ -500,11 +557,12 @@ def pca_graph_kmeans(X):
     ax.legend(target_labels)
     ax.grid()
 
-    plt.show()
+    #plt.show()
 
 
 #pca_graph_kmeans(X_normalized)
 
+"""
 
 
 """def xgboosting(X):
@@ -543,9 +601,23 @@ def pca_graph_kmeans(X):
 #xgboosting(X)
 """
 
+""""
+def pca_variance(X):
+    pca_components = ["PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"]
+
+    pca = PCA(n_components=10)
+    principalComponents = pca.fit_transform(X)
+    variance_ratio = pca.explained_variance_ratio_
+
+    plt.figure()
+    plt.title('Principal Components')
+    plt.ylabel("Variance")
+    plt.bar(pca_components, variance_ratio, color="#4287f5")
+    #plt.show()
 
 
-
+#pca_variance(X_normalized)
+"""
 
 """
 *********** 2ND DATASET ***********
@@ -561,23 +633,36 @@ def second_dataSet():
     dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
     return dataset_two
 
-dataset_two = second_dataSet()
+datasetTwo = second_dataSet()
 
-y_2, X_2, X_2_columns = sep_data(dataset_two)
+show_classBalance(datasetTwo, "Class Balance 2nd dataset")
+
+#heatmap(datasetTwo)
+
+y2, X2, X2_columns = sep_data(datasetTwo)
+#print(X2.shape)
+
+X2_df = pd.DataFrame(X2, columns=X2_columns)
+
+filtered_X2 = filter_columns(X2_df, 0.6)
+#print(filtered_X2.shape)
 
 
 # Data split
-trnX, tstX, trnY, tstY = train_test_split(X_2, y_2, train_size=0.7, stratify=y_2)
+"""trnX, tstX, trnY, tstY = train_test_split(X_2, y_2, train_size=0.7, stratify=y_2)
 
-X_smoted, Y_smoted = smote(trnX,trnY)
-
+#X_smoted, Y_smoted = smote(trnX,trnY)
+#X_over, Y_over = oversample(trnX, trnY)
 X_under, Y_under = undersample(trnX, trnY)
+#X_under2, Y_under2 = under_ClusterCentroids(trnX, trnY)
 
-X_over, Y_over = oversample(trnX, trnY)
+#clf = GaussianNB()
+#scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
 
+best_number_features_NB(X_under,Y_under)
+"""
 
-clf = GaussianNB()
-def stratifiedShuffleSplit(X,y):
+"""def stratifiedShuffleSplit(X,y):
     accValue_list = []
 
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
@@ -597,7 +682,7 @@ def stratifiedShuffleSplit(X,y):
     return mean_value
 
 
-"""acc_valueSmote = stratifiedShuffleSplit(X_smoted, Y_smoted)
+acc_valueSmote = stratifiedShuffleSplit(X_smoted, Y_smoted)
 print(acc_valueSmote)
 
 acc_valueOver = stratifiedShuffleSplit(X_over, Y_over)
@@ -608,22 +693,6 @@ print(acc_undersample)
 """
 
 
-def pca_variance(X):
-
-    pca_components = ["PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10"]
-    
-    pca = PCA(n_components=10)
-    _ = pca.fit_transform(X)
-    variance_ratio = pca.explained_variance_ratio_
-
-    plt.figure()
-    plt.title('Principal Components')
-    plt.ylabel("Variance")
-    plt.bar(pca_components, variance_ratio, color="#4287f5")
-    plt.show()
-
-
-#pca_variance(X_normalized)
 
 
 
