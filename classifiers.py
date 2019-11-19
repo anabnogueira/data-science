@@ -158,8 +158,9 @@ def minMax_data(data):
 
 
 def normalization(X):
-    transf = Normalizer().fit(X)
-    new_X = transf.transform(X)
+
+    transfX = Normalizer().fit(X)
+    new_X = transfX.transform(X)
 
     return new_X
 

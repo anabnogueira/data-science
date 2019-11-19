@@ -134,12 +134,35 @@ X_smoted, Y_smoted = smote(trnX,trnY)
 X_over, Y_over = oversample(trnX, trnY)
 X_under, Y_under = undersample(trnX, trnY)
 
+
+
 print("smote")
 NB_crossValidation(X_smoted,Y_smoted)
 print("over")
 NB_crossValidation(X_over,Y_over)
 print("under")
 NB_crossValidation(X_under,Y_under)
+
+
+# Normalize smote
+X_sm_normalized = normalization(X_smoted)
+
+# Normalize Over
+X_ov_normalized = normalization(X_over)
+
+# Normalize under
+X_ud_normalized = normalization(X_under)
+
+
+print("smote")
+NB_crossValidation(X_sm_normalized,Y_smoted)
+print("over")
+NB_crossValidation(X_ov_normalized,Y_over)
+print("under")
+NB_crossValidation(X_ud_normalized,Y_under)
+
+
+  
 
 
 # Uses NB to show confusion matrix
@@ -236,6 +259,7 @@ freqt_assRule_mining(dummified_df_qcut)
 ***********************************
 
 """
+
 def second_dataSet():
     # add header column
     header = []
@@ -251,12 +275,12 @@ show_classBalance(datasetTwo, "Class Balance 2nd dataset")
 
 #heatmap(datasetTwo)
 
-y2, X2, X2_columns = sep_data(datasetTwo)
+#y2, X2, X2_columns = sep_data(datasetTwo)
 #print(X2.shape)
 
-X2_df = pd.DataFrame(X2, columns=X2_columns)
+#X2_df = pd.DataFrame(X2, columns=X2_columns)
 
-filtered_X2 = filter_columns(X2_df, 0.6)
+#filtered_X2 = filter_columns(X2_df, 0.6)
 #print(filtered_X2.shape)
 
 
