@@ -338,10 +338,10 @@ def kmeans_NrClusters_inertia(X):
     #shows graph
     plt.title("K-Means and number of clusters")
     plt.xlabel("Number of Clusters")
-    plt.ylabel("SEE")
+    plt.ylabel("Inertia")
 
-    #plt.plot(nr_clusters_list, list_inertia_values)
-    #plt.show()
+    plt.plot(nr_clusters_list, list_inertia_values)
+    plt.show()
     
     
 def k_means_sillhoutte(X, nr_cluster):
@@ -357,7 +357,7 @@ def k_means_adjusted_rand_score(y_true, nr_cluster):
     print("Adjusted Rand Score =", adjusted_rand_score(y_true, y_pred))
 
 
-#kmeans_NrClusters_inertia(X_normalized)
+kmeans_NrClusters_inertia(X_normalized)
 
 # return y_pred to be used in pca graph
 y_pred_clustering = k_means_sillhoutte(X_normalized,6)
@@ -469,6 +469,42 @@ def pca_graph(X, y_clustered):
     plt.show()
 
 #pca_graph(X_normalized, y_pred_clustering)
+
+
+# plot best 2 pca components colored with k-means clustering
+def pca_graph_kmeans(X):
+
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(X)
+    principalDf = pd.DataFrame(data = principalComponents, columns = ['Principal Component 1', 'Principal Component 2'])
+
+    kmeans_model = cluster.KMeans(n_clusters=6, random_state=1).fit(principalDf)
+    y_clustered = kmeans_model.labels_
+
+    # turn numpy into dataframe and concat
+    y_pred_clustering_df = pd.DataFrame({'target': y_clustered})
+    finalDf = pd.concat([principalDf, y_pred_clustering_df], axis = 1)
+
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(1,1,1) 
+    ax.set_xlabel('Principal Component 1', fontsize = 12)
+    ax.set_ylabel('Principal Component 2', fontsize = 12)
+    ax.set_title('K-means clustering with 2 Principal Components', fontsize = 16)
+
+    targets = [0, 1, 2, 3, 4, 5]
+    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5']
+    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525']
+    for target, color in zip(targets,colors):
+        indicesToKeep = finalDf['target'] == target
+        ax.scatter(finalDf.loc[indicesToKeep, 'Principal Component 1'], finalDf.loc[indicesToKeep, 'Principal Component 2'], c = color, s = 75, marker='o')
+    ax.legend(target_labels)
+    ax.grid()
+
+    plt.show()
+
+
+#pca_graph_kmeans(X_normalized)
+
 
 
 """def xgboosting(X):
@@ -587,7 +623,7 @@ def pca_variance(X):
     plt.show()
 
 
-
+pca_variance(X_normalized)
 
 
 
