@@ -754,7 +754,7 @@ def kmeans_NrClusters_inertia(X):
     plt.ylabel("Inertia")
 
     plt.plot(nr_clusters_list, list_inertia_values, linewidth=4)
-    #plt.show()
+    plt.show()
 
 
 def k_means_sillhoutte(X, nr_cluster):
@@ -774,13 +774,13 @@ def k_means_adjusted_rand_score(X, y_true, nr_cluster):
 
 def clusters_plot(X_k2_best):
     # 1b compute clustering with Means
-    k_means = KMeans(init='k-means++', n_clusters=6, n_init=10)
+    k_means = KMeans(init='k-means++', n_clusters=5, n_init=10)
     t0 = time.time()
     k_means.fit(X_k2_best)
     t_batch = time.time() - t0
 
     # 1c compute clustering with MiniBatchKMeans
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=6, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=5, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X_k2_best)
     t_mini_batch = time.time() - t0
@@ -800,7 +800,7 @@ def clusters_plot(X_k2_best):
 
     # 2a KMeans
     ax = fig.add_subplot(1, 3, 1)
-    n_clusters = 6
+    n_clusters = 5
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]

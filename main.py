@@ -264,7 +264,7 @@ def associationRules_1st(data):
     X_df = pd.DataFrame(X, columns=X_columns_name)
 
     X_k_best_df = select_Kbest(X_df, y, 20)
-    print(X_k_best_df)
+    #print(X_k_best_df)
 
     "vejo os graficos para escolher cut ou qcut "
     #support_cut_qcut_compare(X_k_best_df)
@@ -280,6 +280,8 @@ def associationRules_1st(data):
     # freqt_assRule_mining(dummified_df_cut)
 
 
+
+" Run for Association Rules "
 associationRules_1st(data)
 
 
@@ -289,10 +291,8 @@ associationRules_1st(data)
 ######################################################################################################################
 
 
-
 """
 *********** 1st DATASET ***************************************************************************************************
-
 """
 
 def unsupervised_1st(data):
@@ -308,7 +308,7 @@ def unsupervised_1st(data):
 
     # return y_pred to be used in pca graph
     y_pred_clustering = k_means_sillhoutte(X_normalized, 6)
-    
+
     k_means_adjusted_rand_score(X_normalized, y, 6)
 
     X_k2_best_df = select_Kbest(X_df, y, 2)
@@ -317,4 +317,40 @@ def unsupervised_1st(data):
     clusters_plot(X_k2_best)
 
 
-unsupervised_1st(data)
+
+
+"""
+*********** 2nd DATASET ***************************************************************************************************
+"""
+
+
+def unsupervised_2nd():
+    datasetTwo = second_dataSet()
+    y2, X2, X2_columns = sep_data(datasetTwo)
+    X2_normalized = normalization(X2)
+
+    X2_columns_name = X2_columns.tolist()
+
+    X2_under, Y2_under = undersample(X2_normalized, y2)
+
+
+    X2_df = pd.DataFrame(X2_under, columns=X2_columns_name)
+
+    #kmeans_NrClusters_inertia(X2_under)
+
+    # return y_pred to be used in pca graph
+    y2_pred_clustering = k_means_sillhoutte(X2_under, 5)
+
+    k_means_adjusted_rand_score(X2_under, Y2_under, 5)
+
+    X2_k2_best_df = select_Kbest(X2_df, Y2_under, 2)
+    X2_k2_best: np.ndarray = X2_k2_best_df.values
+
+    clusters_plot(X2_k2_best)
+
+
+
+
+" Run for cluster "
+#unsupervised_1st(data)
+unsupervised_2nd()
