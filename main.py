@@ -298,6 +298,8 @@ associationRules_1st(data)
 def unsupervised_1st(data):
 
     y, X, X_columns = sep_data(data)
+
+    X = minMax_data(X)
     X_normalized = normalization(X)
 
     X_columns_name = X_columns.tolist()
@@ -311,10 +313,12 @@ def unsupervised_1st(data):
 
     k_means_adjusted_rand_score(X_normalized, y, 6)
 
-    X_k2_best_df = select_Kbest(X_df, y, 2)
-    X_k2_best: np.ndarray = X_k2_best_df.values
+    #X_k2_best_df = select_Kbest(X_df, y, 2)
+    #X_k2_best: np.ndarray = X_k2_best_df.values
 
-    clusters_plot(X_k2_best)
+    #clusters_plot(X_normalized)
+
+    pca_graph(X_normalized, y_pred_clustering)
 
 
 
@@ -327,26 +331,28 @@ def unsupervised_1st(data):
 def unsupervised_2nd():
     datasetTwo = second_dataSet()
     y2, X2, X2_columns = sep_data(datasetTwo)
+
+    X2 = minMax_data(X2)
     X2_normalized = normalization(X2)
 
     X2_columns_name = X2_columns.tolist()
 
-    X2_under, Y2_under = undersample(X2_normalized, y2)
+    #X2_under, Y2_under = undersample(X2_normalized, y2)
 
 
-    X2_df = pd.DataFrame(X2_under, columns=X2_columns_name)
+    #X2_df = pd.DataFrame(X2_under, columns=X2_columns_name)
 
     #kmeans_NrClusters_inertia(X2_under)
 
     # return y_pred to be used in pca graph
-    y2_pred_clustering = k_means_sillhoutte(X2_under, 5)
+    y2_pred_clustering = k_means_sillhoutte(X2_normalized, 5)
 
-    k_means_adjusted_rand_score(X2_under, Y2_under, 5)
+    k_means_adjusted_rand_score(X2_normalized, y2, 5)
 
-    X2_k2_best_df = select_Kbest(X2_df, Y2_under, 2)
-    X2_k2_best: np.ndarray = X2_k2_best_df.values
+    #X2_k2_best_df = select_Kbest(X2_df, Y2_under, 2)
+    #X2_k2_best: np.ndarray = X2_k2_best_df.values
 
-    clusters_plot(X2_k2_best)
+    pca_graph(X2_normalized, y2_pred_clustering)
 
 
 

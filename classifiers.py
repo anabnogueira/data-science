@@ -37,6 +37,8 @@ from xgboost import XGBClassifier
 from sklearn import datasets, metrics, cluster, mixture
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score, accuracy_score
+from sklearn.decomposition import PCA
+
 
 
 
@@ -772,17 +774,17 @@ def k_means_adjusted_rand_score(X, y_true, nr_cluster):
 
 
 
-def clusters_plot(X_k2_best):
+def clusters_plot(X):
     # 1b compute clustering with Means
-    k_means = KMeans(init='k-means++', n_clusters=5, n_init=10)
+    k_means = KMeans(init='k-means++', n_clusters=6, n_init=10)
     t0 = time.time()
-    k_means.fit(X_k2_best)
+    k_means.fit(X)
     t_batch = time.time() - t0
 
     # 1c compute clustering with MiniBatchKMeans
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=5, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=6, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
-    mbk.fit(X_k2_best)
+    mbk.fit(X)
     t_mini_batch = time.time() - t0
 
 
@@ -793,19 +795,19 @@ def clusters_plot(X_k2_best):
 
     k_means_cluster_centers = np.sort(k_means.cluster_centers_, axis=0)
     mbk_means_cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
-    k_means_labels = pairwise_distances_argmin(X_k2_best, k_means_cluster_centers)
-    mbk_means_labels = pairwise_distances_argmin(X_k2_best, mbk_means_cluster_centers)
+    k_means_labels = pairwise_distances_argmin(X, k_means_cluster_centers)
+    mbk_means_labels = pairwise_distances_argmin(X, mbk_means_cluster_centers)
     order = pairwise_distances_argmin(k_means_cluster_centers, mbk_means_cluster_centers)
 
 
     # 2a KMeans
     ax = fig.add_subplot(1, 3, 1)
-    n_clusters = 5
+    n_clusters = 6
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]
-        ax.plot(X_k2_best[my_members,0], X_k2_best[my_members,1],  'w', markerfacecolor=col, marker='.')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=4)
+        ax.plot(X[my_members,0], X[my_members,1],  'w', markerfacecolor=col, marker='.')
+        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
     ax.set_title('KMeans')
     ax.set_xticks(())
     ax.set_yticks(())
@@ -817,8 +819,8 @@ def clusters_plot(X_k2_best):
     for k, col in zip(range(n_clusters), colors):
         my_members = mbk_means_labels == order[k]
         cluster_center = mbk_means_cluster_centers[order[k]]
-        ax.plot(X_k2_best[my_members,0], X_k2_best[my_members,1],'w',markerfacecolor=col,marker='.')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=4)
+        ax.plot(X[my_members,0], X[my_members,1],'w',markerfacecolor=col,marker='.')
+        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
     ax.set_title('MiniBatchKMeans')
     ax.set_xticks(())
     ax.set_yticks(())
@@ -838,11 +840,11 @@ def clusters_plot(X_k2_best):
     ax.set_xticks(())
     ax.set_yticks(())
     """
-    plt.show()
+    #plt.show()
 
 
 
-""""
+
 # plot best 2 pca components colored with k-means clustering
 def pca_graph(X, y_clustered):
 
@@ -869,7 +871,7 @@ def pca_graph(X, y_clustered):
     ax.legend(target_labels)
     ax.grid()
 
-    #plt.show()
+    plt.show()
 
 #pca_graph(X_normalized, y_pred_clustering)
 
@@ -909,7 +911,7 @@ def pca_graph_kmeans(X):
 #pca_graph_kmeans(X_normalized)
 
 
-
+"""
 
 def pca_variance(X):
     pca_components = ["PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"]
