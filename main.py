@@ -76,14 +76,19 @@ def sep_data(data):
 
 
 
-def best_number_features_NB(X, y):
-    nr_features = [10, 20, 30, 40, 50, 60, 70]
+def best_number_features_NB(X, y, dataset):
+    if dataset == 1:
+        nr_features = [10, 20, 30, 40, 50, 60, 70]
+    elif dataset == 2:
+        nr_features = [10, 20, 30, 40, 50]
     yvalues = []
 
     for n in nr_features:
         X_new = SelectKBest(k=n).fit_transform(X, y)
         classifier = GaussianNB()
         scores = cross_val_score(classifier, X_new, y, cv=3)
+        print(scores)
+        print(scores.mean())
         #print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         yvalues.append(scores.mean())
 
@@ -98,7 +103,7 @@ def best_number_features_NB(X, y):
 "select kBest and save columns names FOR UNSUPERVISED"
 def select_Kbest(X, k):
     "select the K best an returns a data frame"
-    X_df = pd.DataFrame(X, columns=X_collumns_name)
+    X_df = pd.DataFrame(X, columns=X_columns_name)
     selector = SelectKBest(f_classif, k=k)
     X_new = selector.fit_transform(X_df, y)
     names = X_df.columns.values[selector.get_support()]
@@ -114,7 +119,7 @@ def select_Kbest(X, k):
 ######################################################################################################################
 "1º fazer isto para eliminar redundancias"
 
-show_classBalance(data, "Class Balance")
+show_classBalance(data, "Class Balance - 1st dataset")
 
 selected_data = feature_selection(data, 0.9)
 
@@ -224,14 +229,14 @@ compareNB(trnX, tstX, trnY, tstY, "NB classifiers with SMOTE")
 """"
 y, X, X_columns = sep_data(selected_data)
 
-X_collumns_name = X_columns.tolist()
+X_columns_name = X_columns.tolist()
 
-#X_df = pd.DataFrame(X, columns=X_collumns_name)
+#X_df = pd.DataFrame(X, columns=X_columns_name)
 
 
 #X_df = select_Kbest(X_df, best_nr_features)
 
-#best_number_features_NB(X,y)
+#best_number_features_NB(X, y, 1)
 #X_k_best_df = select_Kbest(X, 20)
 #support_cut_qcut_compare(X_k_best_df)
 #lift_cut_qcut_compare(X_k_best_df)
@@ -273,7 +278,7 @@ def second_dataSet():
 
 datasetTwo = second_dataSet()
 
-show_classBalance(datasetTwo, "Class Balance 2nd dataset")
+show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
 
 #heatmap(datasetTwo)
 
@@ -297,7 +302,7 @@ X_under, Y_under = undersample(trnX2, trnY2)
 #clf = GaussianNB()
 #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
 
-best_number_features_NB(X_under,Y_under)
+best_number_features_NB(X_under, Y_under, 2)
 """
 
 """def stratifiedShuffleSplit(X,y):
