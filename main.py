@@ -113,7 +113,7 @@ def select_Kbest(X, k):
 ######################################################################################################################
 "1º fazer isto para eliminar redundancias"
 
-show_classBalance(data, "Class Balance - 1st dataset")
+#show_classBalance(data, "Class Balance - 1st dataset")
 
 selected_data = feature_selection(data, 0.9)
 
@@ -125,7 +125,7 @@ trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y)
 trnX = minMax_data(trnX)
 tstX = minMax_data(tstX)
 
-compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
+#compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
 
 
 trnX_normalized = normalization(trnX)
@@ -137,7 +137,7 @@ X_smoted, Y_smoted = smote(trnX_normalized,trnY) # USAR ESTE
 X_over, Y_over = oversample(trnX_normalized, trnY)
 X_under, Y_under = undersample(trnX_normalized, trnY)
 
-
+"""
 print("puro")
 NB_crossValidation(trnX_normalized,trnY)
 print("smote")
@@ -147,24 +147,7 @@ NB_crossValidation(X_over,Y_over)
 print("under")
 NB_crossValidation(X_under,Y_under)
 
-
-# Normalize smote
-X_sm_normalized = normalization(X_smoted)
-
-# Normalize Over
-X_ov_normalized = normalization(X_over)
-
-# Normalize under
-X_ud_normalized = normalization(X_under)
-
-
-print("smote")
-NB_crossValidation(X_sm_normalized,Y_smoted)
-print("over")
-NB_crossValidation(X_ov_normalized,Y_over)
-print("under")
-NB_crossValidation(X_ud_normalized,Y_under)
-
+"""
 
 # Uses NB to show confusion matrix
 
@@ -272,7 +255,7 @@ def second_dataSet():
 
 datasetTwo = second_dataSet()
 
-show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
+#show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
 
 #heatmap(datasetTwo)
 
@@ -331,13 +314,36 @@ print(acc_undersample)
 """
 
 
-knn_cross_validation(X_smoted, Y_smoted)
+#knn_cross_validation(X_smoted, Y_smoted)
 
-knn_cross_validation(trnX_normalized,trnY )
-
-
+#knn_cross_validation(trnX_normalized,trnY)
 
 
+def decision_trees_feature_selection(data, min_samples_leaf, max_depth, metric):
+    nr_features = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    recall_values = []
+
+    plt.figure()
+    plt.title('Decision Trees with CV and Feature Selection')
+    plt.xlabel('Feature Selection')
+    plt.ylabel(metric)
+    
+    for d in nr_features:
+        selected_data = feature_selection(data, d)
+        y, X, _ = sep_data(selected_data)
+        tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, max_depth=max_depth, criterion='entropy')
+        recall = cross_val_score(tree, X, y, cv=10, scoring=metric)
+        print(nr_features)
+        print(recall.mean())
+        
+        recall_values.append(recall.mean())
+
+    plt.plot(nr_features, recall_values, color="#4287f5")
+    plt.show()
+
+
+decision_trees_feature_selection(data, 0.05, 50, 'recall')
+decision_trees_feature_selection(data, 0.05, 50, 'accuracy')
 
 
 
