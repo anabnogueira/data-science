@@ -15,6 +15,7 @@ import scipy.stats as _stats
 import numpy as np
 import time
 from imblearn.over_sampling import SMOTE, RandomOverSampler
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
@@ -23,15 +24,15 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
-from imblearn.under_sampling import RandomUnderSampler, InstanceHardnessThreshold, ClusterCentroids, \
-    EditedNearestNeighbours, AllKNN
+from imblearn.under_sampling import RandomUnderSampler, InstanceHardnessThreshold, ClusterCentroids, EditedNearestNeighbours, AllKNN
 from collections import Counter
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 from subprocess import call
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
-
+import xgboost as xgb
+from xgboost import XGBClassifier
 
 
 def sep_data(data):
@@ -546,7 +547,27 @@ def gradient_boosting_cross_validation(X,y):
     plt.show()
 
 
-"""
+def xgboost(trnX, trnY, tstX, tstY):
+    # fit model no training data
+    model = XGBClassifier()
+    model.fit(trnX, trnY)
+    #print(model)
+
+
+    # make predictions for test data
+    y_pred = model.predict(tstX)
+    predictions = [round(value) for value in y_pred]
+
+    # evaluate predictions
+    accuracy = accuracy_score(tstY, predictions)
+
+    print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+
+
+
+
+""""
 def xgboosting(X):
     # Dta scaling
     X = minMax_data(X)

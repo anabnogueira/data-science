@@ -113,7 +113,7 @@ def processing_and_classification_1st(data):
     trnX = minMax_data(trnX)
     tstX = minMax_data(tstX)
 
-    compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
+    #compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
 
     trnX_normalized = normalization(trnX)
     tstX_normalized = normalization(tstX)
@@ -160,6 +160,8 @@ def processing_and_classification_1st(data):
     #random_forests_cross_validation(trnX_normalized, trnY)
     #random_forests_cross_validation(X_smoted, Y_smoted)
 
+    " xgBOOST"
+    #xgboost(X_smoted, Y_smoted, tstX, tstY)
 
     # Gradient Boosting
     #gradient_boosting_cross_validation(X_normalized, trnY)
@@ -212,12 +214,12 @@ def processing_2nd(dataset_two):
 
     X2_under, Y2_under = undersample(trnX2_normalized, trnY2)  # USAMOS ESTE
 
-    return X2_under, Y2_under
+    return X2_under, Y2_under, tstX2, tstY2
 
 
 def classification_2nd():
     datasetTwo = second_dataSet()
-    X2_under, Y2_under = processing_2nd(datasetTwo)
+    X2_under, Y2_under, tstX2, tstY2 = processing_2nd(datasetTwo)
 
     #clf = GaussianNB()
     #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
@@ -234,12 +236,14 @@ def classification_2nd():
     " Random Forests "
     #random_forests_cross_validation(X2_under, Y2_under)
 
+    " xgBOOST"
+    #xgboost(X2_under,Y2_under, tstX2, tstY2)
+
 
 
 "RUN"
 processing_and_classification_1st(data)
 classification_2nd()
-
 
 
 
