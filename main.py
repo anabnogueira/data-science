@@ -76,19 +76,13 @@ def sep_data(data):
 
 
 
-def best_number_features_NB(X, y, dataset):
-    if dataset == 1:
-        nr_features = [10, 20, 30, 40, 50, 60, 70]
-    elif dataset == 2:
-        nr_features = [10, 20, 30, 40, 50]
-    yvalues = []
+def best_number_features_NB(X, y):
+    nr_features = [10, 20, 30, 40, 50, 60, 70]
 
     for n in nr_features:
         X_new = SelectKBest(k=n).fit_transform(X, y)
         classifier = GaussianNB()
         scores = cross_val_score(classifier, X_new, y, cv=3)
-        print(scores)
-        print(scores.mean())
         #print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         yvalues.append(scores.mean())
 
@@ -236,7 +230,7 @@ X_columns_name = X_columns.tolist()
 
 #X_df = select_Kbest(X_df, best_nr_features)
 
-#best_number_features_NB(X, y, 1)
+#best_number_features_NB(X, y)
 #X_k_best_df = select_Kbest(X, 20)
 #support_cut_qcut_compare(X_k_best_df)
 #lift_cut_qcut_compare(X_k_best_df)
@@ -293,7 +287,7 @@ y2, X2, X2_columns = sep_data(datasetTwo)
 
 # Data split
 trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
-"""
+
 #X_smoted, Y_smoted = smote(trnX2,trnY2)
 #X_over, Y_over = oversample(trnX2, trnY2)
 X_under, Y_under = undersample(trnX2, trnY2)
@@ -302,9 +296,8 @@ X_under, Y_under = undersample(trnX2, trnY2)
 #clf = GaussianNB()
 #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
 
-best_number_features_NB(X_under, Y_under, 2)
 
-"""
+
 
 """
 def stratifiedShuffleSplit(X,y):
