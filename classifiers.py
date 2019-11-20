@@ -16,7 +16,7 @@ import scipy.stats as _stats
 import numpy as np
 import time
 from imblearn.over_sampling import SMOTE, RandomOverSampler
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, pairwise_distances_argmin
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
@@ -34,6 +34,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 import xgboost as xgb
 from xgboost import XGBClassifier
+from sklearn import datasets, metrics, cluster, mixture
+from sklearn.cluster import MiniBatchKMeans, KMeans
+from sklearn.metrics import silhouette_score, adjusted_rand_score, accuracy_score
+
 
 
 def sep_data(data):
@@ -729,10 +733,6 @@ def lift_cut_qcut_compare(X_df):
 ######################################################################################################################
 ####   CLUSTERING  #############################################################################################
 ######################################################################################################################
-"""""
-X_normalized = normalization(X)
-#print(X_normalized)
-
 
 
 #K MEANS
@@ -764,25 +764,20 @@ def k_means_sillhoutte(X, nr_cluster):
     # return y_pred to be used in pca graph
     return y_pred
 
-def k_means_adjusted_rand_score(y_true, nr_cluster):
+def k_means_adjusted_rand_score(X, y_true, nr_cluster):
     kmeans_model = cluster.KMeans(n_clusters=nr_cluster, random_state=1).fit(X) 
     y_pred = kmeans_model.labels_
     print("Adjusted Rand Score =", adjusted_rand_score(y_true, y_pred))
 
 
-kmeans_NrClusters_inertia(X_normalized)
 
-# return y_pred to be used in pca graph
-y_pred_clustering = k_means_sillhoutte(X_normalized,6)
-
-k_means_adjusted_rand_score(y, 6)
-
+""""
 X_k2_best_df = select_Kbest(X_normalized,2)
 #print(X_k2_best_df)
 
 X_k2_best: np.ndarray = X_k2_best_df.values
 #print(X_k2_best)
-
+"""
 def clusters_plot(X_k2_best):
     # 1b compute clustering with Means
     k_means = KMeans(init='k-means++', n_clusters=6, n_init=10)
@@ -853,7 +848,7 @@ def clusters_plot(X_k2_best):
 
 #clusters_plot(X_k2_best)
 
-
+""""
 # plot best 2 pca components colored with k-means clustering
 def pca_graph(X, y_clustered):
 

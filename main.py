@@ -312,7 +312,7 @@ def unsupervised_1st(data):
 
     X_k2_best_df = select_Kbest(X_df, y, 2)
 
-    clusters_plot(X_k2_best_df)
+    #clusters_plot(X_k2_best_df)
 
 
 unsupervised_1st(data)
