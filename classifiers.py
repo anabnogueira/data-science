@@ -57,7 +57,7 @@ def show_classBalance(data, title):
         ls = ls + [str(el)]
 
     plt.bar(ls, count, color="#4287f5")
-    plt.show()
+    #plt.show()
     print("\n")
 
     """min_class = target_count.idxmin()

@@ -126,17 +126,21 @@ trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y)
 trnX = minMax_data(trnX)
 tstX = minMax_data(tstX)
 
+compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
+
+
 trnX_normalized = normalization(trnX)
 tstX_normalized = normalization(tstX)
 
+
 #comparar os 3 e ver scores com o naive bayes
-X_smoted, Y_smoted = smote(trnX_normalized,tstX_normalized) # USAR ESTE
-X_over, Y_over = oversample(trnX_normalized, tstX_normalized)
-X_under, Y_under = undersample(trnX_normalized, tstX_normalized)
+X_smoted, Y_smoted = smote(trnX_normalized,trnY) # USAR ESTE
+X_over, Y_over = oversample(trnX_normalized, trnY)
+X_under, Y_under = undersample(trnX_normalized, trnY)
 
 
 print("puro")
-NB_crossValidation(trnX_normalized,tstX_normalized)
+NB_crossValidation(trnX_normalized,trnY)
 print("smote")
 NB_crossValidation(X_smoted,Y_smoted)
 print("over")
@@ -161,7 +165,6 @@ print("over")
 NB_crossValidation(X_ov_normalized,Y_over)
 print("under")
 NB_crossValidation(X_ud_normalized,Y_under)
-
 
 
 # Uses NB to show confusion matrix
