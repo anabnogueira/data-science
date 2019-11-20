@@ -289,5 +289,30 @@ associationRules_1st(data)
 ######################################################################################################################
 
 
-#CHAMAR AQUI AS FUNÇÕES DO CLUSTER
 
+"""
+*********** 1st DATASET ***************************************************************************************************
+
+"""
+
+def unsupervised_1st(data):
+
+    y, X, X_columns = sep_data(data)
+    X_normalized = normalization(X)
+
+    X_columns_name = X_columns.tolist()
+
+    X_df = pd.DataFrame(X_normalized, columns=X_columns_name)
+
+    #kmeans_NrClusters_inertia(X_normalized)
+
+    # return y_pred to be used in pca graph
+    y_pred_clustering = k_means_sillhoutte(X_normalized, 6)
+    k_means_adjusted_rand_score(X_normalized, y, 6)
+
+    X_k2_best_df = select_Kbest(X_df, y, 2)
+
+    clusters_plot(X_k2_best_df)
+
+
+unsupervised_1st(data)
