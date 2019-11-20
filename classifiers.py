@@ -34,6 +34,22 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 
 
+def sep_data(data):
+    """
+    divide in x and y (removing class)
+    returns X, y, and the colunms
+    """
+
+    y: np.ndarray = data.pop('class').values #class
+    X: np.ndarray = data.values
+
+    X_columns = data.columns
+    labels = pd.unique(y)
+
+    return y, X, X_columns
+
+
+
 ######################################################################################################################
 ####   DATA EXPLORATION   #############################################################################################
 ######################################################################################################################
@@ -157,8 +173,8 @@ def minMax_data(data):
     return new_data
 
 
+'''Normalization'''
 def normalization(X):
-
     transfX = Normalizer().fit(X)
     new_X = transfX.transform(X)
 
@@ -204,6 +220,9 @@ def oversample(trnX, trnY):
 ######################################################################################################################
 ####   CLASSIFIERS    ###############################################################################################
 ######################################################################################################################
+
+
+" ************ NAive Bayes *************"
 
 def NB_crossValidation(X,y):
     clfG = GaussianNB()
@@ -251,6 +270,9 @@ def compareNB(trnX, tstX, trnY, tstY, title):
     plt.show()
 
 
+" ************ KNN *************"
+
+
 def knn(trnX,trnY,tstX,tstY):
     nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100]
     dist = ['manhattan', 'euclidean', 'chebyshev']
@@ -271,19 +293,21 @@ def knn(trnX,trnY,tstX,tstY):
 
 
 def knn_cross_validation(X, y):
-    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100]
+    nvalues = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 25, 50, 75, 100] # 1st data set
+    #nvalues = [1,2,3,4,5,6,10,20,50,10,200,300,400,700, 1000]  # 2nd data set
+
     dist = ['manhattan', 'euclidean', 'chebyshev']
     values = {}
     for d in dist:
         yvalues = []
         for n in nvalues:
             knn = KNeighborsClassifier(n_neighbors=n, metric=d)
-            print(d + " distance - " + str(n) + " neighbours")
+            #print(d + " distance - " + str(n) + " neighbours")
             scores = cross_val_score(knn, X, y, cv=10)
-            print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+            #print("\tAccuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
             yvalues.append(scores.mean())
         values[d] = yvalues
-        print("\n")
+        #print("\n")
     plt.figure()
     func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variations by number of neighbours', 'n', 'accuracy', percentage=True)
     plt.show()
@@ -316,6 +340,9 @@ def knn_feature_selection(data):
     func.multiple_line_chart(plt.gca(), coefs, values, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
     plt.show()
 
+
+
+" ************ Decision Trees *************"
 
 def decision_trees(trnX, trnY, tstX, tstY):
     min_samples_leaf = [.05, .025, .01, .0075, .005, .0025, .001]
@@ -356,7 +383,7 @@ def decision_trees_cross_validation(X, y):
             yvalues = []
             for n in min_samples_leaf:
                 tree = DecisionTreeClassifier(min_samples_leaf=n, max_depth=d, criterion=f)
-                scores = cross_val_score(tree, X, y, cv=10)
+                scores = cross_val_score(tree, X, y, cv=5)
                 yvalues.append(scores.mean())
             values[d] = yvalues
         func.multiple_line_chart(axs[0, k], min_samples_leaf, values, 'Decision Trees with %s criteria' % f,
@@ -380,6 +407,34 @@ def decision_tree_draw(trnX, trnY):
     plt.axis('off')
     plt.show()
 
+
+def decision_trees_feature_selection(data, min_samples_leaf, max_depth, metric):
+    nr_features = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    recall_values = []
+
+    plt.figure()
+    plt.title('Decision Trees and Feature Selection')
+    plt.xlabel('Feature Selection')
+    plt.ylabel(metric)
+
+    for d in nr_features:
+        selected_data = feature_selection(data, d)
+        y, X, _ = sep_data(selected_data)
+        tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, max_depth=max_depth, criterion='entropy')
+        recall = cross_val_score(tree, X, y, cv=5, scoring=metric)
+        #print(nr_features)
+        #print(recall.mean())
+
+        recall_values.append(recall.mean())
+
+    plt.plot(nr_features, recall_values, color="#4287f5")
+    plt.show()
+
+
+
+
+
+" ************ Random Forest *************"
 
 def random_forests(trnX, trnY, tstX, tstY):
     n_estimators = [5, 10, 25, 50, 75, 100, 150, 200, 250, 300]
@@ -429,6 +484,9 @@ def random_forests_cross_validation(X, y):
     plt.show()
 
 
+
+
+" ************ Gradient Boosting *************"
 
 def gradient_boosting(trnX, trnY, tstX, tstY):
 

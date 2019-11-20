@@ -52,28 +52,10 @@ from statistics import mean
 
 """ MAIN """
 register_matplotlib_converters()
-data = pd.read_csv('data/pd.csv', index_col='id', header=1)
-
 
 #######################################################################################################################
-#### DATA PROCESSING #################################################################################################
+#### FUNCTION FOR PROCESSING OF UNSUPERVISED  #########################################################################
 #######################################################################################################################
-
-
-def sep_data(data):
-    """
-    divide in x and y (removing class)
-    returns X, y, and the colunms
-    """
-
-    y: np.ndarray = data.pop('class').values #class
-    X: np.ndarray = data.values
-
-    X_columns = data.columns
-    labels = pd.unique(y)
-
-    return y, X, X_columns
-
 
 
 def best_number_features_NB(X, y):
@@ -94,7 +76,7 @@ def best_number_features_NB(X, y):
     plt.show()
 
 
-"select kBest and save columns names FOR UNSUPERVISED"
+"select kBest and save columns names FOR UNSUPERVISED Assocation RUles"
 def select_Kbest(X, k):
     "select the K best an returns a data frame"
     X_df = pd.DataFrame(X, columns=X_columns_name)
@@ -109,93 +91,155 @@ def select_Kbest(X, k):
 
 
 ######################################################################################################################
-####   CLASSIFICATION      ##############################################################################
+####   CLASSIFICATION      ###########################################################################################
 ######################################################################################################################
-"1º fazer isto para eliminar redundancias"
-
-#show_classBalance(data, "Class Balance - 1st dataset")
-
-selected_data = feature_selection(data, 0.9)
-
-y, X, X_columns = sep_data(selected_data)
-
-trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y)
-
-# Dta scaling
-trnX = minMax_data(trnX)
-tstX = minMax_data(tstX)
-
-#compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
-
-
-trnX_normalized = normalization(trnX)
-tstX_normalized = normalization(tstX)
-
-
-#comparar os 3 e ver scores com o naive bayes
-X_smoted, Y_smoted = smote(trnX_normalized,trnY) # USAR ESTE
-X_over, Y_over = oversample(trnX_normalized, trnY)
-X_under, Y_under = undersample(trnX_normalized, trnY)
 
 """
-print("puro")
-NB_crossValidation(trnX_normalized,trnY)
-print("smote")
-NB_crossValidation(X_smoted,Y_smoted)
-print("over")
-NB_crossValidation(X_over,Y_over)
-print("under")
-NB_crossValidation(X_under,Y_under)
+*********** 1st DATASET ***************************************************************************************************
+
+"""
+data = pd.read_csv('data/pd.csv', index_col='id', header=1)
+#print(data.groupby('class').size())
+
+def processing_and_classification_1st(data):
+
+    selected_data = feature_selection(data, 0.9)
+
+    y, X, X_columns = sep_data(selected_data)
+
+    trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y)
+
+    # Dta scaling
+    trnX = minMax_data(trnX)
+    tstX = minMax_data(tstX)
+
+    compareNB(trnX, tstX, trnY, tstY, "NB classifiers")
+
+    trnX_normalized = normalization(trnX)
+    tstX_normalized = normalization(tstX)
+
+
+
+    #comparar os 3 e ver scores com o naive bayes
+    X_smoted, Y_smoted = smote(trnX_normalized,trnY) # USAR ESTE
+    #X_over, Y_over = oversample(trnX_normalized, trnY)
+    #X_under, Y_under = undersample(trnX_normalized, trnY)
+
+
+    "Naive Bayes using training and test set"
+    #compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with normalization")
+
+
+    #compareNB(X_smoted, tstX_normalized, Y_smoted, tstY, "NB classifiers with smote")
+    #compareNB(X_over, tstX_normalized, Y_over, tstY, "NB classifiers with oversampling")
+    #compareNB(X_under, tstX_normalized, Y_under, tstY, "NB classifiers with undersampling")
+
+    "confusion matrix"
+    #gaussianNB(X_under, tstX_normalized, Y_under, tstY, labels = [0, 1])
+
+
+    "KNN with cross validation for the training data "
+    #knn_feature_selection(selected_data)
+
+    #knn_cross_validation(X_smoted, Y_smoted) #with smote normalized
+    #knn_cross_validation(trnX_normalized,trnY) #normalized
+    #knn_cross_validation(trnX,trnY) #without normalization
+
+
+    " Decision trees "
+    #decision_tree_draw(trnX_normalized, trnY)
+    #decision_trees_cross_validation(trnX_normalized,trnY)
+    #decision_trees_cross_validation(trnX,trnY)
+
+    #decision_trees_cross_validation(X_smoted, Y_smoted)
+
+    #decision_trees_feature_selection(data, 0.015, 25, 'accuracy')
+
+
+    " Random Forests "
+    #random_forests_cross_validation(trnX_normalized, trnY)
+    #random_forests_cross_validation(X_smoted, Y_smoted)
+
+
+    # Gradient Boosting
+    #gradient_boosting_cross_validation(X_normalized, trnY)
+
+
+"""
+*********** 2ND DATASET ***************************************************************************************************
 
 """
 
-# Uses NB to show confusion matrix
-
-# NB with oversampling without normalisation
-#trnX, trnY = oversample(trnX, trnY)
-#gaussianNB(trnX, tstX, trnY, tstY, labels=[0, 1])
-#compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Oversampling")
-"""
-# NB with undersampling without normalisation
-trnX, trnY = undersample(trnX, trnY)
-gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with Undersampling")
-compareNB(trnX, tstX, trnY, tstY, "NB classifiers with Undersampling")
-
-# NB with undersampling without normalisation
-trnX, trnY = smote(trnX, trnY)
-gaussianNB(trnX, tstX, trnY, tstY, labels, "Gaussian NB with SMOTE")
-compareNB(trnX, tstX, trnY, tstY, "NB classifiers with SMOTE")
-
-"""
+def second_dataSet():
+    # add header column
+    header = []
+    for i in range(0, 54):
+        header.append(str(i))
+    header.append('class')
+    dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
+    return dataset_two
 
 
-#print(X)
-#y = sep_data(selected_data)[0]
-# Data split
+def processing_2nd(dataset_two):
 
-# Normalization
-#X_normalized = normalization(X)
+    #datasetTwo = second_dataSet()
 
-#cnf_mtx = gaussianNB(trnX, tstX, trnY, tstY, "labels", "nome")
+    # show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
+    # heatmap(datasetTwo)
+
+    y2, X2, X2_columns = sep_data(dataset_two)
+    # print(X2.shape)
+
+    X2_df = pd.DataFrame(X2, columns=X2_columns)
+
+    # nao fazemos feature slection no segundo data set
+    # filtered_X2 = filter_columns(X2_df, 0.9)
+    # print(filtered_X2.shape)
+
+    # Data split
+    trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
+
+    # Dta scaling
+    trnX2 = minMax_data(trnX2)
+    tstX2 = minMax_data(tstX2)
+
+    trnX2_normalized = normalization(trnX2)
+    tstX2_normalized = normalization(tstX2)
+
+    # X2_smoted, Y2_smoted = smote(trnX2_normalized,trnY2)
+    # X2_over, Y2_over = oversample(trnX2_normalized, trnY2)
+    # X2_under2, Y2_under2 = undersample_AllNN(trnX2_normalized, trnY2) #JA NAO E, MUDAR
+
+    X2_under, Y2_under = undersample(trnX2_normalized, trnY2)  # USAMOS ESTE
+
+    return X2_under, Y2_under
+
+
+def classification_2nd():
+    datasetTwo = second_dataSet()
+    X2_under, Y2_under = processing_2nd(datasetTwo)
+
+    #clf = GaussianNB()
+    #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
+
+    "confusion matrix"
+    #gaussianNB(X2_under, tstX2_normalized, Y2_under, tstY2, labels = [1,2,3,4,5,6,7])
+
+    "KNN with cross validation for the training data "
+    #knn_cross_validation(X2_under, Y2_under) #with smote normalized
+
+    " Decision trees "
+    #decision_trees_cross_validation(X2_under, Y2_under)
+
+    " Random Forests "
+    #random_forests_cross_validation(X2_under, Y2_under)
 
 
 
-#knn(trnX_normalized,trnY,tstX_normalized,tstY)
-#knn_feature_selection(selected_data)
-#knn_cross_validation(X_normalized, y)
+"RUN"
+processing_and_classification_1st(data)
+classification_2nd()
 
-# Decision trees
-#decision_trees(trnX_normalized, trnY, tstX_normalized, tstY)
-#decision_tree_draw(trnX_normalized, trnY)
-#decision_trees_cross_validation(X_normalized, y)
-
-# Random Forests
-#random_forests(trnX_normalized, trnY, tstX_normalized, tstY)
-#random_forests_cross_validation(X_normalized, y)
-
-# Gradient Boosting
-#gradient_boosting(trnX_normalized, trnY, tstX_normalized, tstY)
-#gradient_boosting_cross_validation(X_normalized, y)
 
 
 
@@ -237,116 +281,4 @@ freqt_assRule_mining(dummified_df_qcut)
 
 
 #CHAMAR AQUI AS FUNÇÕES DO CLUSTER
-
-"""
-*********** 2ND DATASET ***********
-***********************************
-
-"""
-
-def second_dataSet():
-    # add header column
-    header = []
-    for i in range(0, 54):
-        header.append(str(i))
-    header.append('class')
-    dataset_two = pd.read_csv('data/covtype.csv', header=None, names=header)
-    return dataset_two
-
-datasetTwo = second_dataSet()
-
-#show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
-
-#heatmap(datasetTwo)
-
-#y2, X2, X2_columns = sep_data(datasetTwo)
-#print(X2.shape)
-
-#X2_df = pd.DataFrame(X2, columns=X2_columns)
-
-#filtered_X2 = filter_columns(X2_df, 0.6)
-#print(filtered_X2.shape)
-
-
-# Data split
-#trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
-
-#X_smoted, Y_smoted = smote(trnX2,trnY2)
-#X_over, Y_over = oversample(trnX2, trnY2)
-#X_under, Y_under = undersample(trnX2, trnY2)
-#X_under2, Y_under2 = under_ClusterCentroids(trnX2, trnY2) #JA NAO E, MUDAR 
-
-#clf = GaussianNB()
-#scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
-
-
-
-
-"""
-def stratifiedShuffleSplit(X,y):
-    accValue_list = []
-
-    sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
-    sss.get_n_splits(X_smoted, Y_smoted)
-    for train_index, test_index in sss.split(X, y):
-        #print("TRAIN:", train_index, "TEST:", test_index)
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
-
-        clf.fit(X_train, y_train)
-        y_pred = clf.predict(X_test)
-        accValue = accuracy_score(y_test, y_pred)
-        #print(accValue)
-        accValue_list.append(accValue)
-
-    mean_value = mean(accValue_list)
-    return mean_value
-
-
-acc_valueSmote = stratifiedShuffleSplit(X_smoted, Y_smoted)
-print(acc_valueSmote)
-
-acc_valueOver = stratifiedShuffleSplit(X_over, Y_over)
-print(acc_valueOver)
-
-acc_undersample = stratifiedShuffleSplit(X_under, Y_under)
-print(acc_undersample)
-"""
-
-
-#knn_cross_validation(X_smoted, Y_smoted)
-
-#knn_cross_validation(trnX_normalized,trnY)
-
-
-def decision_trees_feature_selection(data, min_samples_leaf, max_depth, metric):
-    nr_features = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    recall_values = []
-
-    plt.figure()
-    plt.title('Decision Trees with CV and Feature Selection')
-    plt.xlabel('Feature Selection')
-    plt.ylabel(metric)
-    
-    for d in nr_features:
-        selected_data = feature_selection(data, d)
-        y, X, _ = sep_data(selected_data)
-        tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, max_depth=max_depth, criterion='entropy')
-        recall = cross_val_score(tree, X, y, cv=10, scoring=metric)
-        print(nr_features)
-        print(recall.mean())
-        
-        recall_values.append(recall.mean())
-
-    plt.plot(nr_features, recall_values, color="#4287f5")
-    plt.show()
-
-
-decision_trees_feature_selection(data, 0.05, 50, 'recall')
-decision_trees_feature_selection(data, 0.05, 50, 'accuracy')
-
-
-
-
-
 
