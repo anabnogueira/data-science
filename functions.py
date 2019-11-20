@@ -38,7 +38,7 @@ def bar_chart(ax: plt.Axes, xvalues: list, yvalues: list, title: str, xlabel: st
     ax.set_xticklabels(xvalues, rotation=90, fontsize='small')
     if percentage:
         ax.set_ylim(0.0, 1.0)
-    ax.bar(xvalues, yvalues, edgecolor='grey')
+    ax.bar(xvalues, yvalues, color="#4287f5")
 
 
 def multiple_bar_chart(ax: plt.Axes, xvalues: list, yvalues: dict, title: str, xlabel: str, ylabel: str, percentage=False):

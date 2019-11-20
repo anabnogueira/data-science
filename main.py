@@ -292,8 +292,8 @@ y2, X2, X2_columns = sep_data(datasetTwo)
 
 
 # Data split
-"""trnX2, tstX2, trnY2, tstY2 = train_test_split(X_2, y_2, train_size=0.7, stratify=y_2)
-
+trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
+"""
 #X_smoted, Y_smoted = smote(trnX2,trnY2)
 #X_over, Y_over = oversample(trnX2, trnY2)
 X_under, Y_under = undersample(trnX2, trnY2)
@@ -303,9 +303,11 @@ X_under, Y_under = undersample(trnX2, trnY2)
 #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
 
 best_number_features_NB(X_under, Y_under, 2)
+
 """
 
-"""def stratifiedShuffleSplit(X,y):
+"""
+def stratifiedShuffleSplit(X,y):
     accValue_list = []
 
     sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
