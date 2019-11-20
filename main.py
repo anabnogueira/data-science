@@ -60,7 +60,7 @@ register_matplotlib_converters()
 
 def best_number_features_NB(X, y):
     nr_features = [10, 20, 30, 40, 50, 60, 70]
-
+    yvalues = []
     for n in nr_features:
         X_new = SelectKBest(k=n).fit_transform(X, y)
         classifier = GaussianNB()
@@ -71,22 +71,10 @@ def best_number_features_NB(X, y):
 
     plt.plot(nr_features, yvalues, color='g')
     plt.xlabel('Number of features')
-    plt.ylabel('Mean scores')
-    plt.title('Mean scores for number of features through Naive Bayes classifier')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy for number of features with t = 0.8')
     plt.show()
 
-
-"select kBest and save columns names FOR UNSUPERVISED Assocation RUles"
-def select_Kbest(X, k):
-    "select the K best an returns a data frame"
-    X_df = pd.DataFrame(X, columns=X_columns_name)
-    selector = SelectKBest(f_classif, k=k)
-    X_new = selector.fit_transform(X_df, y)
-    names = X_df.columns.values[selector.get_support()]
-    scores = selector.scores_[selector.get_support()]
-    X_KBest_df = pd.DataFrame(X_new, columns=names)
-
-    return X_KBest_df
 
 
 
@@ -118,18 +106,13 @@ def processing_and_classification_1st(data):
     trnX_normalized = normalization(trnX)
     tstX_normalized = normalization(tstX)
 
-
-
     #comparar os 3 e ver scores com o naive bayes
     X_smoted, Y_smoted = smote(trnX_normalized,trnY) # USAR ESTE
     #X_over, Y_over = oversample(trnX_normalized, trnY)
     #X_under, Y_under = undersample(trnX_normalized, trnY)
 
-
     "Naive Bayes using training and test set"
     #compareNB(trnX_normalized, tstX_normalized, trnY, tstY, "NB classifiers with normalization")
-
-
     #compareNB(X_smoted, tstX_normalized, Y_smoted, tstY, "NB classifiers with smote")
     #compareNB(X_over, tstX_normalized, Y_over, tstY, "NB classifiers with oversampling")
     #compareNB(X_under, tstX_normalized, Y_under, tstY, "NB classifiers with undersampling")
@@ -137,14 +120,11 @@ def processing_and_classification_1st(data):
     "confusion matrix"
     #gaussianNB(X_under, tstX_normalized, Y_under, tstY, labels = [0, 1])
 
-
     "KNN with cross validation for the training data "
     #knn_feature_selection(selected_data)
-
     #knn_cross_validation(X_smoted, Y_smoted) #with smote normalized
     #knn_cross_validation(trnX_normalized,trnY) #normalized
     #knn_cross_validation(trnX,trnY) #without normalization
-
 
     " Decision trees "
     #decision_tree_draw(trnX_normalized, trnY)
@@ -154,7 +134,6 @@ def processing_and_classification_1st(data):
     #decision_trees_cross_validation(X_smoted, Y_smoted)
 
     #decision_trees_feature_selection(data, 0.015, 25, 'accuracy')
-
 
     " Random Forests "
     #random_forests_cross_validation(trnX_normalized, trnY)
@@ -241,7 +220,7 @@ def classification_2nd():
 
 
 
-"RUN"
+" Run for supervised "
 processing_and_classification_1st(data)
 classification_2nd()
 
@@ -251,31 +230,57 @@ classification_2nd()
 ####   ASSOCIATION RULES  #############################################################################################
 ######################################################################################################################
 #Data preperation for ASSOCIATION RULES  """
-""""
-y, X, X_columns = sep_data(selected_data)
 
-X_columns_name = X_columns.tolist()
-
-#X_df = pd.DataFrame(X, columns=X_columns_name)
-
-
-#X_df = select_Kbest(X_df, best_nr_features)
-
-#best_number_features_NB(X, y)
-#X_k_best_df = select_Kbest(X, 20)
-#support_cut_qcut_compare(X_k_best_df)
-#lift_cut_qcut_compare(X_k_best_df)
-
-X_df_cut = cut(X_k10_best_df, 3, ['0','1','2'])
-dummified_df_cut = dummyfication(X_df_cut)
-freqt_assRule_mining(dummified_df_cut)
-
-X_df_qcut = qcut(X_k10_best_df, 3, ['0','1','2'])
-dummified_df_qcut = dummyfication(X_df_qcut)
-freqt_assRule_mining(dummified_df_qcut)
+"""
+*********** 1st DATASET ***************************************************************************************************
 
 """
 
+"select kBest and save columns names FOR UNSUPERVISED Assocation RUles"
+def select_Kbest(X_df, y, k):
+    "select the K best an returns a data frame"
+
+    selector = SelectKBest(f_classif, k=k)
+    X_new_df = selector.fit_transform(X_df, y)
+
+    #vou arranjar agora o nome das colunas
+    names_columns = X_df.columns.values[selector.get_support()]
+    #scores = selector.scores_[selector.get_support()]
+
+    #crio data frame com dados e nomes colunas
+    X_KBest_df = pd.DataFrame(X_new_df, columns=names_columns)
+
+    return X_KBest_df
+
+
+def associationRules_1st(data):
+
+    selected_data = feature_selection(data, 0.9)
+    y, X, X_columns = sep_data(selected_data)
+    X_columns_name = X_columns.tolist()
+
+    # best_number_features_NB(X, y) # ve qual o melhor que e 0.9 para 20
+
+    X_df = pd.DataFrame(X, columns=X_columns_name)
+
+    X_k_best_df = select_Kbest(X_df, y, 20)
+    print(X_k_best_df)
+
+    "vejo os graficos para escolher cut ou qcut "
+    #support_cut_qcut_compare(X_k_best_df)
+    #lift_cut_qcut_compare(X_k_best_df)
+
+    " agora com o qcut imprimo a tabea de AR"
+    X_df_qcut = qcut(X_k_best_df, 3, ['0','1','2'])
+    dummified_df_qcut = dummyfication(X_df_qcut)
+    freqt_assRule_mining(dummified_df_qcut)
+
+    # X_df_cut = cut(X_k_best_df, 3, ['0','1','2'])
+    # dummified_df_cut = dummyfication(X_df_cut)
+    # freqt_assRule_mining(dummified_df_cut)
+
+
+associationRules_1st(data)
 
 
 

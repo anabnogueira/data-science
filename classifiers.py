@@ -7,6 +7,7 @@ Created on Sun Oct 13 10:12:16 2019
 """
 
 import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
 from pandas.plotting import register_matplotlib_converters
 import matplotlib.pyplot as plt
 import functions as func
