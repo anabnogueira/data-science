@@ -276,7 +276,7 @@ show_classBalance(datasetTwo, "Class Balance - 2nd dataset")
 
 #heatmap(datasetTwo)
 
-y2, X2, X2_columns = sep_data(datasetTwo)
+#y2, X2, X2_columns = sep_data(datasetTwo)
 #print(X2.shape)
 
 #X2_df = pd.DataFrame(X2, columns=X2_columns)
@@ -286,11 +286,11 @@ y2, X2, X2_columns = sep_data(datasetTwo)
 
 
 # Data split
-trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
+#trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.7, stratify=y2)
 
 #X_smoted, Y_smoted = smote(trnX2,trnY2)
 #X_over, Y_over = oversample(trnX2, trnY2)
-X_under, Y_under = undersample(trnX2, trnY2)
+#X_under, Y_under = undersample(trnX2, trnY2)
 #X_under2, Y_under2 = under_ClusterCentroids(trnX2, trnY2) #JA NAO E, MUDAR 
 
 #clf = GaussianNB()
@@ -331,7 +331,9 @@ print(acc_undersample)
 """
 
 
+knn_cross_validation(X_smoted, Y_smoted)
 
+knn_cross_validation(trnX_normalized,trnY )
 
 
 

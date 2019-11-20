@@ -285,7 +285,7 @@ def knn_cross_validation(X, y):
         values[d] = yvalues
         print("\n")
     plt.figure()
-    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variations by number of neighbours + CV', 'n', 'accuracy', percentage=True)
+    func.multiple_line_chart(plt.gca(), nvalues, values, 'KNN variations by number of neighbours', 'n', 'accuracy', percentage=True)
     plt.show()
 
 
