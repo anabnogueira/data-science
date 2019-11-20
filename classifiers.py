@@ -771,13 +771,7 @@ def k_means_adjusted_rand_score(X, y_true, nr_cluster):
 
 
 
-""""
-X_k2_best_df = select_Kbest(X_normalized,2)
-#print(X_k2_best_df)
 
-X_k2_best: np.ndarray = X_k2_best_df.values
-#print(X_k2_best)
-"""
 def clusters_plot(X_k2_best):
     # 1b compute clustering with Means
     k_means = KMeans(init='k-means++', n_clusters=6, n_init=10)
@@ -786,7 +780,7 @@ def clusters_plot(X_k2_best):
     t_batch = time.time() - t0
 
     # 1c compute clustering with MiniBatchKMeans
-    mbk = MiniBatchKMeans(init='k-means++', n_clusters=3, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=6, batch_size=45, n_init=10, max_no_improvement=10, verbose=0)
     t0 = time.time()
     mbk.fit(X_k2_best)
     t_mini_batch = time.time() - t0
@@ -810,8 +804,8 @@ def clusters_plot(X_k2_best):
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]
-        ax.plot(X_k2_best[my_members,0], X_k2_best[my_members,1],  'w', markerfacecolor=col, marker='o')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
+        ax.plot(X_k2_best[my_members,0], X_k2_best[my_members,1],  'w', markerfacecolor=col, marker='.')
+        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=4)
     ax.set_title('KMeans')
     ax.set_xticks(())
     ax.set_yticks(())
@@ -824,13 +818,14 @@ def clusters_plot(X_k2_best):
         my_members = mbk_means_labels == order[k]
         cluster_center = mbk_means_cluster_centers[order[k]]
         ax.plot(X_k2_best[my_members,0], X_k2_best[my_members,1],'w',markerfacecolor=col,marker='.')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
+        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=4)
     ax.set_title('MiniBatchKMeans')
     ax.set_xticks(())
     ax.set_yticks(())
     plt.text(-3.5,1.8,'train time: %.2fs\ninertia: %f' % (t_mini_batch, mbk.inertia_))
 
     # 2c difference between solutions
+    """
     different = (mbk_means_labels == 4)
     ax = fig.add_subplot(1, 3, 3)
     for k in range(n_clusters):
@@ -842,11 +837,10 @@ def clusters_plot(X_k2_best):
     ax.set_title('Difference')
     ax.set_xticks(())
     ax.set_yticks(())
+    """
+    plt.show()
 
-    #plt.show()
 
-
-#clusters_plot(X_k2_best)
 
 """"
 # plot best 2 pca components colored with k-means clustering

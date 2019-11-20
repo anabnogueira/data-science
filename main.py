@@ -308,11 +308,13 @@ def unsupervised_1st(data):
 
     # return y_pred to be used in pca graph
     y_pred_clustering = k_means_sillhoutte(X_normalized, 6)
+    
     k_means_adjusted_rand_score(X_normalized, y, 6)
 
     X_k2_best_df = select_Kbest(X_df, y, 2)
+    X_k2_best: np.ndarray = X_k2_best_df.values
 
-    #clusters_plot(X_k2_best_df)
+    clusters_plot(X_k2_best)
 
 
 unsupervised_1st(data)
