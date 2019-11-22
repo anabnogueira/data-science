@@ -337,7 +337,7 @@ def knn_feature_selection(data):
 
             y: np.ndarray = data.pop('class').values
             X: np.ndarray = data.values
-
+            #X = minMax_data(trnX)
             knn = KNeighborsClassifier(n_neighbors=n, metric=dist)
             scores = cross_val_score(knn, X, y, cv=10)
 
@@ -492,124 +492,32 @@ def random_forests_cross_validation(X, y):
     plt.show()
 
 
-
-
-" ************ Gradient Boosting *************"
-
-def gradient_boosting(trnX, trnY, tstX, tstY):
-
-    lr_list = [0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
+def xgboost(X, y):
     n_estimators = [5, 10, 25, 50, 75]
-    max_features = ['sqrt', 'log2']
-    #max_depths = [2,5,7,10,12,14,17,19,20,23,25,28]
+    max_depths = [5,10,15,20]
+    values = []
+    colors = ['#EB507F', '#137DD2', '#F6E051', '#4EACC5']
+    for d in range(len(max_depths)):
+        yvalues = []
 
-    plt.figure()
-    fig, axs = plt.subplots(1, 2, figsize=(10, 4), squeeze=False)
-    
-    for k in range(len(max_features)):
-        f = max_features[k] 
-        values = {}      
-        for estimators in n_estimators:
-            yvalues = []
-            for learning_rate in lr_list:
-                    
-                gb_clf = GradientBoostingClassifier(n_estimators=estimators, learning_rate=learning_rate, max_features=f, max_depth=25, random_state=0)
-                gb_clf.fit(trnX, trnY)
-                prdY = gb_clf.predict(tstX)
-                yvalues.append(metrics.accuracy_score(tstY, prdY))
-
-            values[estimators] = yvalues
-              
-        func.multiple_line_chart(axs[0, k], lr_list, values, 'Gradient Boosting with %s features' % f,
-                                 'learning_rate',
-                                 'accuracy', percentage=True)    
-    
+        for estimator in n_estimators:
+            # fit model no training data
+            xgb = XGBClassifier(max_depth=max_depths[d], n_estimators=estimator)
+            scores = cross_val_score(xgb, X, y, cv=3)
+            yvalues.append(scores.mean())
+        values.append(yvalues)
+        print(yvalues)
+    ax = plt.gca()
+    for i in range(0, len(max_depths)):
+        plt.plot(n_estimators, values[i], color=colors[i])
+    ax.legend(max_depths, loc='best', fancybox=True, shadow=True, title = "max_depths parameter" )
+    plt.xlabel('Number Estimators')
+    plt.ylabel('Accuracy')
+    plt.title('XGB accuracy for different values of max_depths')
     plt.show()
 
 
-def gradient_boosting_cross_validation(X,y):
 
-    lr_list = [0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
-    n_estimators = [5, 10, 25, 50, 75]
-    max_features = ['sqrt', 'log2']
-    #max_depths = [2,5,7,10,12,14,17,19,20,23,25,28]
-
-    plt.figure()
-    fig, axs = plt.subplots(1, 2, figsize=(10, 4), squeeze=False)
-    for k in range(len(max_features)):
-        f = max_features[k] 
-        values = {}      
-        for estimators in n_estimators:
-            yvalues = []
-            for learning_rate in lr_list:
-                gb_clf = GradientBoostingClassifier(n_estimators=estimators, learning_rate=learning_rate, max_features=f, max_depth=25, random_state=0)
-                scores = cross_val_score(gb_clf, X, y, cv=10)
-                yvalues.append(scores.mean())
-
-            values[estimators] = yvalues
-
-        func.multiple_line_chart(axs[0, k], lr_list, values, 'Gradient Boosting CV with %s features' % f,
-                                 'learning_rate',
-                                 'accuracy', percentage=True)
-    plt.show()
-
-
-def xgboost(trnX, trnY, tstX, tstY):
-    # fit model no training data
-    model = XGBClassifier()
-    model.fit(trnX, trnY)
-    #print(model)
-
-
-    # make predictions for test data
-    y_pred = model.predict(tstX)
-    predictions = [round(value) for value in y_pred]
-
-    # evaluate predictions
-    accuracy = accuracy_score(tstY, predictions)
-
-    print("Accuracy: %.2f%%" % (accuracy * 100.0))
-
-
-
-
-
-""""
-def xgboosting(X):
-    # Dta scaling
-    X = minMax_data(X)
-    #y = sep_data(selected_data)[0]
-    # Data split
-    trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.7, stratify=y)
-
-    # Normalization
-    X_normalized = normalization(X)
-
-    trnX_normalized = normalization(trnX)
-    tstX_normalized = normalization(tstX)
-
-    dtrain = xgb.DMatrix(trnX_normalized, label=trnY)
-    dtest = xgb.DMatrix(tstX, label=tstY)
-
-    param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'binary:logistic'}
-    num_round = 2
-
-    print('running cross validation')
-    xgb.cv(param, dtrain, num_round, nfold=5,
-        metrics={'error'}, seed=0,
-        callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
-
-    print('running cross validation, disable standard deviation display')
-    # do cross validation, this will print result out as
-    # [iteration]  metric_name:mean_value
-    res = xgb.cv(param, dtrain, num_boost_round=10, nfold=5,
-                metrics={'error'}, seed=0,
-                callbacks=[xgb.callback.print_evaluation(show_stdv=False),
-                            xgb.callback.early_stop(3)])
-    print(res)
-
-#xgboosting(X)
-"""
 
 ######################################################################################################################
 ####   ASSOCIATION RULES USING APRIORI  ##############################################################################
@@ -621,20 +529,48 @@ def cut(X_df, bins, labels):
     return X_copy
 
 def qcut(X_df, quantils, label):
+    print("QCUT")
     X_copy = X_df.copy()
     for col in X_copy:
-        X_copy[col] = pd.qcut(X_copy[col], quantils, labels = label)
+        X_copy[col] = pd.qcut(X_copy[col], quantils, labels = label, duplicates='drop')
     return X_copy
 
 
 "DUMMY"
 def dummyfication(X_df):
+    print("DUMMMMMMMMMM")
     dummylist = []
     for att in X_df:
         dummylist.append(pd.get_dummies(X_df[[att]]))
     dummified_df = pd.concat(dummylist, axis=1)
 
     return dummified_df
+
+
+def assocRules_plot(dummified_df):
+    print("function")
+    support = [0.05, 0.1, 0.3, 0.6, 0.9]
+    nr_patterns = []
+    for sup in support:
+        print(sup)
+        print("freq")
+        frequent_itemsets = apriori(dummified_df, min_support=sup, use_colnames=True)
+        print(len(frequent_itemsets))
+
+        if (len(frequent_itemsets) != 0):
+            print("rules")
+            rules = association_rules(frequent_itemsets, metric='lift', min_threshold=0.9)
+            print(len(rules))
+            nr_patterns.append(len(rules))
+
+        else:
+            support.remove(sup)
+
+    plt.plot(support, nr_patterns, color='#137DD2')
+    plt.xlabel('support')
+    plt.ylabel('patterns')
+    plt.title('Number of patterns for min support values')
+    plt.show()
 
 
 def freqt_assRule_mining(dummified_df):
@@ -648,7 +584,7 @@ def freqt_assRule_mining(dummified_df):
         minsup = minsup * 0.9
         frequent_itemsets = apriori(dummified_df, min_support=minsup, use_colnames=True)
         if len(frequent_itemsets) >= minpaterns:
-            #print("Minimum support:", minsup)
+            print("Minimum support:", minsup)
             break
     #print("Number of found patterns:", len(frequent_itemsets))
 
@@ -776,7 +712,7 @@ def k_means_adjusted_rand_score(X, y_true, nr_cluster):
 
 def clusters_plot(X):
     # 1b compute clustering with Means
-    k_means = KMeans(init='k-means++', n_clusters=6, n_init=10)
+    k_means = KMeans(init='k-means++', n_clusters=8, n_init=10)
     t0 = time.time()
     k_means.fit(X)
     t_batch = time.time() - t0
@@ -791,57 +727,27 @@ def clusters_plot(X):
     # 2 plotting differences result
     fig = plt.figure(figsize=(8, 3))
     fig.subplots_adjust(left=0.02, right=0.98, bottom=0.05, top=0.9)
-    colors = ['#EB507F', '#137DD2', '#F6E051', '#4EACC5', '#FF9C34', '#4E9A06']
+    colors = ['#EB507F', '#137DD2', '#F6E051', '#4EACC5', '#FF9C34', '#4E9A06', '#CCFFCC', '#0000CC' ]
 
     k_means_cluster_centers = np.sort(k_means.cluster_centers_, axis=0)
-    mbk_means_cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
+    #mbk_means_cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
     k_means_labels = pairwise_distances_argmin(X, k_means_cluster_centers)
-    mbk_means_labels = pairwise_distances_argmin(X, mbk_means_cluster_centers)
-    order = pairwise_distances_argmin(k_means_cluster_centers, mbk_means_cluster_centers)
-
+    #mbk_means_labels = pairwise_distances_argmin(X, mbk_means_cluster_centers)
+    #order = pairwise_distances_argmin(k_means_cluster_centers, mbk_means_cluster_centers)
 
     # 2a KMeans
     ax = fig.add_subplot(1, 3, 1)
-    n_clusters = 6
+    n_clusters = 8
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]
-        ax.plot(X[my_members,0], X[my_members,1],  'w', markerfacecolor=col, marker='.')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
+        ax.plot(X[my_members,0], X[my_members,1],   markerfacecolor=col, marker='.')
+        ax.plot(cluster_center[0], cluster_center[1], markerfacecolor=col,  markersize=6)
     ax.set_title('KMeans')
     ax.set_xticks(())
     ax.set_yticks(())
     plt.text(-3.5, 1.8,'train time: %.2fs\ninertia: %f' % (t_batch, k_means.inertia_))
-
-
-    # 2b MiniBatchKMeans
-    ax = fig.add_subplot(1, 3, 2)
-    for k, col in zip(range(n_clusters), colors):
-        my_members = mbk_means_labels == order[k]
-        cluster_center = mbk_means_cluster_centers[order[k]]
-        ax.plot(X[my_members,0], X[my_members,1],'w',markerfacecolor=col,marker='.')
-        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col, markeredgecolor='k', markersize=6)
-    ax.set_title('MiniBatchKMeans')
-    ax.set_xticks(())
-    ax.set_yticks(())
-    plt.text(-3.5,1.8,'train time: %.2fs\ninertia: %f' % (t_mini_batch, mbk.inertia_))
-
-    # 2c difference between solutions
-    """
-    different = (mbk_means_labels == 4)
-    ax = fig.add_subplot(1, 3, 3)
-    for k in range(n_clusters):
-        different += ((k_means_labels == k) != (mbk_means_labels == order[k]))
-
-    identic = np.logical_not(different)
-    ax.plot(X_k2_best[identic, 0], X_k2_best[identic, 1], 'w',markerfacecolor='#bbbbbb', marker='.')
-    ax.plot(X_k2_best[different, 0], X_k2_best[different, 1], 'w', markerfacecolor='m', marker='.')
-    ax.set_title('Difference')
-    ax.set_xticks(())
-    ax.set_yticks(())
-    """
     #plt.show()
-
 
 
 
@@ -862,9 +768,9 @@ def pca_graph(X, y_clustered):
     ax.set_ylabel('Principal Component 2', fontsize = 12)
     ax.set_title('K-means clustering with 2 Principal Components', fontsize = 16)
 
-    targets = [0, 1, 2, 3, 4, 5]
-    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5']
-    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525']
+    targets = [0, 1, 2, 3, 4, 5,6,7]
+    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7']
+    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525', '#CCFFCC', '#0000CC' ]
     for target, color in zip(targets,colors):
         indicesToKeep = finalDf['target'] == target
         ax.scatter(finalDf.loc[indicesToKeep, 'Principal Component 1'], finalDf.loc[indicesToKeep, 'Principal Component 2'], c = color, s = 75, marker='o')
