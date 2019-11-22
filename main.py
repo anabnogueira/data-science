@@ -90,10 +90,15 @@ data = pd.read_csv('data/pd.csv', index_col='id', header=1)
 #print(data.groupby('class').size())
 
 def processing_and_classification_1st(data):
+    #group_formant = data.iloc[:,25:29]
+    #heatmap(group_formant)
 
+    #show_classBalance(data, "Class distribution")
+    print(data.shape)
     selected_data = feature_selection(data, 0.9)
 
     y, X, X_columns = sep_data(selected_data)
+    #print(len(X_columns))
 
     trnX, tstX, trnY, tstY = train_test_split(X, y, train_size=0.85, stratify=y) #so para NB
 
@@ -132,6 +137,7 @@ def processing_and_classification_1st(data):
 
     " Random Forests "
     #random_forests_cross_validation(X_smoted, Y_smoted)
+    #random_forest_feature_selection(data, 20, 50, 'accuracy')
 
     " xgBOOST"
     #xgboost(X_smoted, Y_smoted)
@@ -182,19 +188,25 @@ def processing_2nd(dataset_two):
 
 def classification_2nd():
     datasetTwo = second_dataSet()
+
+    #show_classBalance(datasetTwo, "Class distribution")
+
+
     X2_under, Y2_under, tstX2, tstY2 = processing_2nd(datasetTwo)
 
     #clf = GaussianNB()
     #scores1 = cross_val_score(clf, X_under, Y_under, cv=5)
 
     "confusion matrix"
-    gaussianNB(X2_under, tstX2, Y2_under, tstY2, labels = [1,2,3,4,5,6,7])
+    #gaussianNB(X2_under, tstX2, Y2_under, tstY2, labels = [1,2,3,4,5,6,7])
 
     "KNN with cross validation for the training data "
     #knn_cross_validation(X2_under, Y2_under) #with smote normalized
 
     " Decision trees "
     #decision_trees_cross_validation(X2_under, Y2_under)
+    #decision_tree_draw(X2_under, Y2_under)
+
 
     " Random Forests "
     #random_forests_cross_validation(X2_under, Y2_under)
@@ -251,29 +263,30 @@ def associationRules_1st(data):
     group_mfcc = data.iloc[:, 55:139]
     group_wavelet = data.iloc[:, 139:-1]
 
-    groups = [group_intensity]
+    groupA = data.iloc[:, 1:33]
+    groups = [group_formant]
 
     y, X, X_columns = sep_data(data)
     X_columns_name = X_columns.tolist()
 
-    for X_df in groups:
-        """X: np.ndarray = group.values
-        X_df = pd.DataFrame(X, columns=X_columns_name)"""
+    """for X_df in groups:
+        #X: np.ndarray = group.values
+        #X_df = pd.DataFrame(X, columns=X_columns_name)
         print("x_df")
         X_df_cut = cut(X_df, 3, ['0', '1', '2'])
         dummified_df_cut = dummyfication(X_df_cut)
         #freqt_assRule_mining(dummified_df_cut)
         assocRules_plot(dummified_df_cut)
-
-    #X_df = pd.DataFrame(X, columns=X_columns_name)
+"""
+    X_df = pd.DataFrame(X, columns=X_columns_name)
     #print(X_df)
 
     #X_k_best_df = select_Kbest(X_df, y, 20)
     #print(X_k_best_df)
 
     "vejo os graficos para escolher cut ou qcut "
-    #support_cut_qcut_compare(X_df)
-    #lift_cut_qcut_compare(X_df)
+    support_cut_qcut_compare(X_df)
+    lift_cut_qcut_compare(X_df)
 
     " agora com o qcut imprimo a tabea de AR"
     """X_df_qcut = qcut(X_df, 3, ['0','1','2'])
@@ -281,30 +294,29 @@ def associationRules_1st(data):
     dummified_df_qcut = dummyfication(X_df_qcut)
     print(dummified_df_qcut)
     freqt_assRule_mining(dummified_df_qcut)
-    assocRules_plot(dummified_df_qcut)
-"""
+    assocRules_plot(dummified_df_qcut)"""
 
-""""
-def associationRules_2nd(data):
 
-    y2, X2, X2_columns = sep_data(data)
-    X2_columns_name = X_columns.tolist()
+def associationRules_2nd():
+    datasetTwo = second_dataSet()
+
+    y2, X2, X2_columns = sep_data(datasetTwo)
+    X2_columns_name = X2_columns.tolist()
 
     trnX2, tstX2, trnY2, tstY2 = train_test_split(X2, y2, train_size=0.05, stratify=y2) #NB
 
-    X2_df = pd.DataFrame(trnX2, columns=X_columns_name)
+    X2_df = pd.DataFrame(trnX2, columns=X2_columns_name)
 
     X2_df_cut = cut(X2_df, 3, ['0', '1', '2'])
     dummified2_df_cut = dummyfication(X2_df_cut)
     #freqt_assRule_mining(dummified_df_cut)
     assocRules_plot(dummified2_df_cut)
 
-"""
-
 
 
 " Run for Association Rules "
 #associationRules_1st(data)
+#associationRules_2nd()
 
 
 
@@ -319,13 +331,13 @@ def associationRules_2nd(data):
 
 def unsupervised_1st(data):
 
-    new_data = data.groupby(['id']).mean()
+    #new_data = data.groupby(['id']).mean()
 
-    y, X, X_columns = sep_data(new_data)
+    y, X, X_columns = sep_data(data)
     #y, X, X_columns = sep_data(data)
 
 
-    X = minMax_data(X)
+    #X = minMax_data(X)
 
     X_columns_name = X_columns.tolist()
 
@@ -334,14 +346,15 @@ def unsupervised_1st(data):
     #kmeans_NrClusters_inertia(X)
 
     # return y_pred to be used in pca graph
-    y_pred_clustering = k_means_sillhoutte(X, 8)
+    #y_pred_clustering = k_means_sillhoutte(X, 8)
 
     #k_means_adjusted_rand_score(X, y, 8)
 
     #X_k2_best_df = select_Kbest(X_df, y, 2)
     #X_k2_best: np.ndarray = X_k2_best_df.values
 
-    clusters_plot(X)
+    #clusters_plot(X)
+    #k_means(X)
 
     #pca_graph(X, y_pred_clustering)
 
@@ -372,9 +385,9 @@ def unsupervised_2nd():
     #kmeans_NrClusters_inertia(X2)
 
     # return y_pred to be used in pca graph
-    y2_pred_clustering = k_means_sillhoutte(X2, 7)
+    y2_pred_clustering = k_means_sillhoutte(X2, 8)
 
-    k_means_adjusted_rand_score(X2, y2, 7)
+    #k_means_adjusted_rand_score(X2, y2, 7)
 
     #X2_k2_best_df = select_Kbest(X2_df, Y2_under, 2)
     #X2_k2_best: np.ndarray = X2_k2_best_df.values
