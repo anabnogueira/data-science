@@ -727,6 +727,11 @@ def k_means_sillhoutte(X, nr_cluster):
     return y_pred
 
 
+def k_means_adjusted_rand_score(X, y_true, nr_cluster):
+    kmeans_model = cluster.KMeans(n_clusters=nr_cluster, random_state=1).fit(X) 
+    y_pred = kmeans_model.labels_
+    print("Adjusted Rand Score =", adjusted_rand_score(y_true, y_pred))
+
 
 def clusters_plot(X):
     # 1b compute clustering with Means
@@ -786,9 +791,9 @@ def pca_graph(X, y_clustered):
     ax.set_ylabel('Principal Component 2', fontsize = 12)
     ax.set_title('K-means clustering with 2 Principal Components', fontsize = 16)
 
-    targets = [0, 1, 2, 3, 4, 5,6,7]
-    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7']
-    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525', '#CCFFCC', '#0000CC' ]
+    targets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    target_labels = ['Cluster 0', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9']
+    colors = ['#00A0B0', '#6A4A3C', '#CC333F', '#EB6841', '#EDC951', '#252525', '#CCFFCC', '#0000CC', '#793CAB', '#F7317B']
     for target, color in zip(targets,colors):
         indicesToKeep = finalDf['target'] == target
         ax.scatter(finalDf.loc[indicesToKeep, 'Principal Component 1'], finalDf.loc[indicesToKeep, 'Principal Component 2'], c = color, s = 75, marker='o')
@@ -796,8 +801,6 @@ def pca_graph(X, y_clustered):
     ax.grid()
 
     plt.show()
-
-#pca_graph(X_normalized, y_pred_clustering)
 
 
 # plot best 2 pca components colored with k-means clustering
@@ -832,15 +835,10 @@ def pca_graph_kmeans(X):
     #plt.show()
 
 
-#pca_graph_kmeans(X_normalized)
-
-
-"""
-
 def pca_variance(X):
-    pca_components = ["PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"]
+    pca_components = ["PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "PC11", "PC12", "PC13", "PC14", "PC15"]
 
-    pca = PCA(n_components=10)
+    pca = PCA(n_components=15)
     principalComponents = pca.fit_transform(X)
     variance_ratio = pca.explained_variance_ratio_
 
@@ -848,8 +846,5 @@ def pca_variance(X):
     plt.title('Principal Components')
     plt.ylabel("Variance")
     plt.bar(pca_components, variance_ratio, color="#4287f5")
-    #plt.show()
+    plt.show()
 
-
-#pca_variance(X_normalized)
-"""

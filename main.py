@@ -316,7 +316,7 @@ def associationRules_2nd():
 
 " Run for Association Rules "
 #associationRules_1st(data)
-#associationRules_2nd()
+associationRules_2nd()
 
 
 
@@ -337,7 +337,7 @@ def unsupervised_1st(data):
     #y, X, X_columns = sep_data(data)
 
 
-    #X = minMax_data(X)
+    X = minMax_data(X)
 
     X_columns_name = X_columns.tolist()
 
@@ -357,6 +357,8 @@ def unsupervised_1st(data):
     #k_means(X)
 
     #pca_graph(X, y_pred_clustering)
+
+    #pca_variance(X)
 
 
 
@@ -385,7 +387,7 @@ def unsupervised_2nd():
     #kmeans_NrClusters_inertia(X2)
 
     # return y_pred to be used in pca graph
-    y2_pred_clustering = k_means_sillhoutte(X2, 8)
+    #y2_pred_clustering = k_means_sillhoutte(X2, 10)
 
     #k_means_adjusted_rand_score(X2, y2, 7)
 
